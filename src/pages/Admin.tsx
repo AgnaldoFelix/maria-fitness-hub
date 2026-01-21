@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ export default function Admin() {
   const deleteRecipeMutation = useDeleteRecipe();
   const deleteProductMutation = useDeleteProduct();
 
-  const formatForCanva = (recipe: Recipe) => {
+  const formatForCanva = useCallback((recipe: Recipe) => {
     const emojiMap: Record<string, string> = {
       "Café da Manhã": "☀️",
       "Lanche": "🥪",
@@ -70,7 +70,7 @@ ${recipe.modo_preparo
 ⏱️ Tempo de preparo: ${recipe.tempo}
 
 ✨ Receita por @mariafitness`;
-  };
+  }, []);
 
   const handleCopyForCanva = async (recipe: Recipe) => {
     const formattedText = formatForCanva(recipe);
@@ -131,17 +131,17 @@ ${recipe.modo_preparo
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background safe-pb">
       <Header title="Área Admin" subtitle="Gerenciar conteúdo" />
 
       <main className="px-4 py-4 max-w-lg mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="receitas" className="gap-2">
+          <TabsList className="grid w-full grid-cols-2 h-11">
+            <TabsTrigger value="receitas" className="gap-2 text-sm">
               <UtensilsCrossed className="w-4 h-4" />
               Receitas
             </TabsTrigger>
-            <TabsTrigger value="produtos" className="gap-2">
+            <TabsTrigger value="produtos" className="gap-2 text-sm">
               <ShoppingBag className="w-4 h-4" />
               Produtos
             </TabsTrigger>
@@ -149,36 +149,38 @@ ${recipe.modo_preparo
 
           <TabsContent value="receitas" className="space-y-4">
             <Button 
-              className="w-full gap-2 bg-primary hover:bg-primary/90"
+              className="w-full gap-2 bg-primary hover:bg-primary/90 h-11 text-base"
               onClick={handleNewRecipe}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
               Nova Receita
             </Button>
 
             {recipesLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : (
               <div className="space-y-3">
                 {recipes.map((recipe) => (
                   <Card key={recipe.id} className="animate-fade-in">
-                    <CardContent className="p-4">
+                    <CardContent className="p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-heading font-semibold text-foreground truncate">
+                            <h3 className="font-medium text-foreground truncate text-sm">
                               {recipe.nome}
                             </h3>
-                            {recipe.publicada ? (
-                              <Eye className="w-4 h-4 text-success flex-shrink-0" />
-                            ) : (
-                              <EyeOff className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            )}
+                            <div className="flex-shrink-0">
+                              {recipe.publicada ? (
+                                <Eye className="w-4 h-4 text-success" />
+                              ) : (
+                                <EyeOff className="w-4 h-4 text-muted-foreground" />
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant="secondary" className="text-xs px-1.5 py-0">
                               {recipe.categoria}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
@@ -186,12 +188,13 @@ ${recipe.modo_preparo
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
                             onClick={() => handleCopyForCanva(recipe)}
+                            title="Copiar para Canva"
                           >
                             <Copy className="w-4 h-4" />
                           </Button>
@@ -200,6 +203,7 @@ ${recipe.modo_preparo
                             size="icon" 
                             className="h-8 w-8"
                             onClick={() => handleEditRecipe(recipe)}
+                            title="Editar"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -208,6 +212,7 @@ ${recipe.modo_preparo
                             size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive"
                             onClick={() => setDeleteRecipeId(recipe.id)}
+                            title="Excluir"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -217,9 +222,9 @@ ${recipe.modo_preparo
                   </Card>
                 ))}
                 {recipes.length === 0 && (
-                  <p className="text-center text-muted-foreground py-8">
-                    Nenhuma receita cadastrada.
-                  </p>
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">Nenhuma receita cadastrada.</p>
+                  </div>
                 )}
               </div>
             )}
@@ -227,48 +232,43 @@ ${recipe.modo_preparo
 
           <TabsContent value="produtos" className="space-y-4">
             <Button 
-              className="w-full gap-2 bg-success hover:bg-success/90"
+              className="w-full gap-2 bg-success hover:bg-success/90 h-11 text-base"
               onClick={handleNewProduct}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
               Novo Produto
             </Button>
 
             {productsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-success" />
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-success" />
               </div>
             ) : (
               <div className="space-y-3">
                 {products.map((product) => (
                   <Card key={product.id} className="animate-fade-in">
-                    <CardContent className="p-4">
+                    <CardContent className="p-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-heading font-semibold text-foreground truncate">
+                            <h3 className="font-medium text-foreground truncate text-sm">
                               {product.nome}
                             </h3>
-                            {product.disponivel ? (
-                              <Badge className="bg-success text-success-foreground text-xs">
-                                Disponível
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="text-xs">
-                                Indisponível
-                              </Badge>
-                            )}
+                            <Badge className={`text-xs px-1.5 py-0 ${product.disponivel ? 'bg-success text-success-foreground' : ''}`}>
+                              {product.disponivel ? 'Disponível' : 'Indisponível'}
+                            </Badge>
                           </div>
-                          <span className="text-primary font-semibold">
+                          <span className="text-primary font-semibold text-sm">
                             {formatPrice(Number(product.preco))}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <Button 
                             variant="ghost" 
                             size="icon" 
                             className="h-8 w-8"
                             onClick={() => handleEditProduct(product)}
+                            title="Editar"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -277,6 +277,7 @@ ${recipe.modo_preparo
                             size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive"
                             onClick={() => setDeleteProductId(product.id)}
+                            title="Excluir"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -286,9 +287,9 @@ ${recipe.modo_preparo
                   </Card>
                 ))}
                 {products.length === 0 && (
-                  <p className="text-center text-muted-foreground py-8">
-                    Nenhum produto cadastrado.
-                  </p>
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">Nenhum produto cadastrado.</p>
+                  </div>
                 )}
               </div>
             )}
@@ -314,16 +315,19 @@ ${recipe.modo_preparo
 
       {/* Delete Recipe Confirmation */}
       <AlertDialog open={!!deleteRecipeId} onOpenChange={() => setDeleteRecipeId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[90vw] rounded-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir receita?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base">Excluir receita?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
               Esta ação não pode ser desfeita. A receita será removida permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteRecipe} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogCancel className="h-10">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteRecipe} 
+              className="bg-destructive hover:bg-destructive/90 h-10"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -332,16 +336,19 @@ ${recipe.modo_preparo
 
       {/* Delete Product Confirmation */}
       <AlertDialog open={!!deleteProductId} onOpenChange={() => setDeleteProductId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[90vw] rounded-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir produto?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base">Excluir produto?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
               Esta ação não pode ser desfeita. O produto será removido permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteProduct} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogCancel className="h-10">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteProduct} 
+              className="bg-destructive hover:bg-destructive/90 h-10"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
