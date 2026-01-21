@@ -1,26 +1,156 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Lovable App</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
-
-    <!-- TODO: Update og:title to match your application name -->
-    <meta property="og:title" content="Lovable App" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- Informações da aplicação -->
+    <title>Maria Fitness - Receitas e Produtos Saudáveis</title>
+    <meta name="description" content="Receitas fitness, produtos saudáveis e dicas de nutrição para uma vida mais saudável com Maria Fitness" />
+    <meta name="author" content="Maria Fitness" />
+    <meta name="theme-color" content="#10b981" />
+    
+    <!-- Meta tags para SEO -->
+    <meta name="keywords" content="receitas fitness, comida saudável, produtos fit, nutrição, dieta, low carb, proteico, emagrecimento saudável" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph (Redes Sociais) -->
+    <meta property="og:title" content="Maria Fitness - Receitas e Produtos Saudáveis" />
+    <meta property="og:description" content="Descubra receitas deliciosas e produtos saudáveis para transformar sua alimentação" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
+    <meta property="og:url" content="https://mariafitness.com" />
+    <meta property="og:image" content="/day.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="pt_BR" />
+    
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:title" content="Maria Fitness - Receitas e Produtos Saudáveis" />
+    <meta name="twitter:description" content="Receitas fitness e produtos saudáveis para uma vida melhor" />
+    <meta name="twitter:image" content="/day.png" />
+    
+    <!-- Favicon e ícones -->
+    <link rel="icon" type="image/x-icon" href="/day.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/day.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/day.png">
+    <link rel="apple-touch-icon" href="/day.png">
+    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
+    
+    <!-- PWA configuration -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Maria Fitness">
+    
+    <!-- Performance optimizations -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- CSS para melhor experiência mobile -->
+    <style>
+      /* Prevent scroll on body when modal/dialog is open */
+      html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        min-height: 100vh;
+        background-color: #ffffff;
+      }
+      
+      /* Loading screen styling */
+      #root {
+        min-height: 100vh;
+      }
+      
+      /* Splash screen for PWA */
+      @media (display-mode: standalone) {
+        body {
+          background-color: #ffffff;
+        }
+      }
+    </style>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Loading placeholder -->
+      <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        z-index: 9999;
+      ">
+        <div style="
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          overflow: hidden;
+          margin-bottom: 20px;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        ">
+          <img 
+            src="/day.png" 
+            alt="Maria Fitness"
+            style="width: 100%; height: 100%; object-fit: cover;"
+          />
+        </div>
+        <div style="
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 24px;
+          font-weight: bold;
+          color: #065f46;
+          margin-bottom: 8px;
+        ">
+          Maria Fitness
+        </div>
+        <div style="
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 14px;
+          color: #047857;
+        ">
+          Carregando...
+        </div>
+      </div>
+    </div>
+    
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Script para remover loading screen -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const loadingDiv = document.querySelector('#root > div');
+          if (loadingDiv) {
+            loadingDiv.style.opacity = '0';
+            loadingDiv.style.transition = 'opacity 0.3s ease-out';
+            setTimeout(() => {
+              if (loadingDiv.parentNode) {
+                loadingDiv.parentNode.removeChild(loadingDiv);
+              }
+            }, 300);
+          }
+        }, 500);
+      });
+      
+      // PWA installation prompt
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        window.deferredPrompt = e;
+      });
+    </script>
   </body>
 </html>
