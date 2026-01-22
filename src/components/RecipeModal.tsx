@@ -29,7 +29,7 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const whatsappNumero = settings?.whatsapp_numero || "5511999999999";
+  const whatsappNumero = settings?.whatsapp_numero || "5579996848609";
 
   if (!recipe) return null;
 
@@ -40,7 +40,6 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
     // Dividir por quebras de linha existentes
     const lines = text.split('\n');
     
-    // Processar cada linha
     const processedLines = lines.map(line => {
       const trimmedLine = line.trim();
       if (!trimmedLine) return "";
