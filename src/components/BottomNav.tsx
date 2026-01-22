@@ -78,14 +78,14 @@ export function BottomNav({ position = 'fixed', className }: BottomNavProps) {
         {/* Footer - linha única muito compacta */}
         <div className="border-t border-border/10">
           <div className="px-4 py-1 text-center">
-            <p className="text-[10px] text-muted-foreground/60 leading-tight">
+            <p className="text-[12px] text-muted-foreground/60 leading-tight">
               <span className="inline-flex items-center gap-0.5">
-                Desenvolvido com <span className="text-red-500 text-[8px]">❤️</span> por{" "}
+                Desenvolvido com <span className="text-red-500 text-[20px]"></span> por{" "}
                 <a 
                   href="https://www.linkedin.com/in/agnaldofelix/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-primary font-medium hover:underline"
+                  className="text-primary font-bold hover:underline"
                 >
                   Agnaldo Felix
                 </a>

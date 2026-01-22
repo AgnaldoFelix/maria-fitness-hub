@@ -54,7 +54,7 @@ export default function Produtos() {
           <>
             {/* Products Grid */}
             {filteredProducts.length > 0 ? (
-              <div className="overflow-y-auto max-h-[60vh] grid grid-cols-2 gap-3">
+              <div className="overflow-y-auto max-h-[70vh] grid grid-cols-2 gap-3">
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
