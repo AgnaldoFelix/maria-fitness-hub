@@ -70,17 +70,17 @@ export function ProductCard({
             {descricao}
           </p>
         </div>
-        <div className="flex items-center justify-between gap-2 pt-2">
+        <div className="flex items-center justify-between pt-2">
           <span className="font-bold text-primary text-sm sm:text-base">
             {formatPrice(preco)}
           </span>
           <Button
             onClick={handleComprar}
             size="sm"
-            className="bg-success hover:bg-success/90 text-success-foreground gap-1.5 px-3 py-2 min-h-[36px]"
+            className="bg-success hover:bg-success/90 text-success-foreground gap-1 px-1 py-1 min-h-[36px]"
             aria-label={`Comprar ${nome}`}
           >
-            <MessageCircle className="w-3.5 h-3.5" />
+            <MessageCircle className="w-2.5 h-2.5" />
             <span className="text-xs sm:text-sm">Comprar</span>
           </Button>
         </div>

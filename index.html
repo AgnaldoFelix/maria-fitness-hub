@@ -2,13 +2,26 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- Configurações otimizadas para iPhone -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-touch-fullscreen" content="yes">
     
     <!-- Informações da aplicação -->
     <title>Maria Fitness - Receitas e Produtos Saudáveis</title>
     <meta name="description" content="Receitas fitness, produtos saudáveis e dicas de nutrição para uma vida mais saudável com Maria Fitness" />
     <meta name="author" content="Maria Fitness" />
-    <meta name="theme-color" content="#10b981" />
+    
+    <!-- Theme color para Safari no iOS -->
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Apple specific meta tags -->
+    <meta name="apple-mobile-web-app-title" content="Maria Fitness">
+    <link rel="apple-touch-startup-image" href="/day.png">
     
     <!-- Meta tags para SEO -->
     <meta name="keywords" content="receitas fitness, comida saudável, produtos fit, nutrição, dieta, low carb, proteico, emagrecimento saudável" />
@@ -30,28 +43,51 @@
     <meta name="twitter:description" content="Receitas fitness e produtos saudáveis para uma vida melhor" />
     <meta name="twitter:image" content="/day.png" />
     
-    <!-- Favicon e ícones -->
+    <!-- Ícones para iPhone (todas as resoluções necessárias) -->
     <link rel="icon" type="image/x-icon" href="/day.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/day.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/day.png">
+    
+    <!-- Apple Touch Icons para diferentes dispositivos -->
     <link rel="apple-touch-icon" href="/day.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="/day.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/day.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/day.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/day.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/day.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/day.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/day.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/day.png">
+    
+    <!-- Splash screens para iPhone (quando adicionado à tela inicial) -->
+    <link rel="apple-touch-startup-image" href="/day.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/day.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/day.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/day.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/day.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/day.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    
     <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
     
-    <!-- PWA configuration -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Maria Fitness">
-    
-    <!-- Performance optimizations -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- CSS para melhor experiência mobile -->
+    <!-- CSS otimizado para iPhone -->
     <style>
-      /* Prevent scroll on body when modal/dialog is open */
+      /* Reset básico para iOS */
+      * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      
+      input, textarea {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+      
       html {
+        height: 100%;
         scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
@@ -59,29 +95,65 @@
       body {
         margin: 0;
         padding: 0;
+        min-height: 100%;
+        height: 100%;
         overflow-x: hidden;
-        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         background-color: #ffffff;
+        /* Prevenir bounce no iOS */
+        position: fixed;
+        width: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
       
-      /* Loading screen styling */
       #root {
-        min-height: 100vh;
+        min-height: 100%;
+        height: 100%;
       }
       
-      /* Splash screen for PWA */
+      /* Ajuste para notch do iPhone X+ */
+      @supports (padding: max(0px)) {
+        body, #root {
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+      }
+      
+      /* Estilo quando instalado como PWA */
       @media (display-mode: standalone) {
         body {
           background-color: #ffffff;
         }
+        
+        /* Esconde a barra de endereço no Safari */
+        body > * {
+          -webkit-user-select: none;
+          user-select: none;
+        }
+      }
+      
+      /* Prevenir zoom em inputs no iOS */
+      @media screen and (max-width: 768px) {
+        input, select, textarea {
+          font-size: 16px !important;
+        }
+      }
+      
+      /* Loading screen com blur effect para iOS */
+      #initial-loading {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
       }
     </style>
   </head>
 
   <body>
     <div id="root">
-      <!-- Loading placeholder -->
-      <div style="
+      <!-- Tela de carregamento otimizada para iOS -->
+      <div id="initial-loading" style="
         position: fixed;
         top: 0;
         left: 0;
@@ -93,64 +165,152 @@
         justify-content: center;
         background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
         z-index: 9999;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
       ">
         <div style="
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
+          width: 100px;
+          height: 100px;
+          border-radius: 24px;
           overflow: hidden;
-          margin-bottom: 20px;
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+          margin-bottom: 24px;
+          box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+          animation: pulse 2s infinite;
         ">
           <img 
             src="/day.png" 
             alt="Maria Fitness"
             style="width: 100%; height: 100%; object-fit: cover;"
+            onerror="this.style.display='none';"
           />
         </div>
         <div style="
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-size: 24px;
-          font-weight: bold;
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+          font-size: 28px;
+          font-weight: 700;
           color: #065f46;
-          margin-bottom: 8px;
+          margin-bottom: 12px;
+          letter-spacing: -0.5px;
         ">
           Maria Fitness
         </div>
         <div style="
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-size: 14px;
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+          font-size: 16px;
           color: #047857;
+          opacity: 0.8;
         ">
           Carregando...
         </div>
+        <div style="
+          margin-top: 30px;
+          width: 40px;
+          height: 40px;
+          border: 3px solid rgba(6, 95, 70, 0.1);
+          border-top-color: #10b981;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        "></div>
       </div>
     </div>
     
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Script para remover loading screen -->
+    <!-- Scripts otimizados para iOS -->
     <script>
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          const loadingDiv = document.querySelector('#root > div');
+      // Animations CSS
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Detectar iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      
+      // Remover loading screen quando o app carregar
+      window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          const loadingDiv = document.getElementById('initial-loading');
           if (loadingDiv) {
+            loadingDiv.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
             loadingDiv.style.opacity = '0';
-            loadingDiv.style.transition = 'opacity 0.3s ease-out';
+            loadingDiv.style.transform = 'scale(0.95)';
+            
             setTimeout(() => {
               if (loadingDiv.parentNode) {
                 loadingDiv.parentNode.removeChild(loadingDiv);
               }
-            }, 300);
+            }, 500);
           }
-        }, 500);
+        }, 800);
       });
       
-      // PWA installation prompt
+      // Prevenir comportamento padrão de swipe no iOS
+      document.addEventListener('touchmove', function(e) {
+        if (e.scale !== 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+      // Fix para inputs no iOS
+      if (isIOS) {
+        document.addEventListener('touchstart', function() {}, {passive: true});
+        
+        // Prevenir double-tap zoom
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+          const now = Date.now();
+          if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        }, {passive: true});
+        
+        // Ajustar altura da viewport para iOS
+        function setViewportHeight() {
+          const vh = window.innerHeight * 0.01;
+          document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        window.addEventListener('resize', setViewportHeight);
+        window.addEventListener('orientationchange', setViewportHeight);
+        setViewportHeight();
+      }
+      
+      // PWA installation para iOS
+      let deferredPrompt;
+      
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
-        window.deferredPrompt = e;
+        deferredPrompt = e;
+        
+        // Mostrar prompt de instalação para iOS
+        if (isIOS) {
+          setTimeout(() => {
+            if (window.matchMedia('(display-mode: browser)').matches) {
+              // Usuário está no Safari, pode sugerir adicionar à tela inicial
+              console.log('Para uma melhor experiência, adicione este app à sua tela inicial:');
+              console.log('1. Toque no botão Compartilhar');
+              console.log('2. Role para baixo e toque em "Adicionar à Tela de Início"');
+              console.log('3. Toque em "Adicionar" no canto superior direito');
+            }
+          }, 3000);
+        }
       });
+      
+      // Detectar se está em modo standalone (adicionado à tela inicial)
+      if (window.matchMedia('(display-mode: standalone)').matches || 
+          window.navigator.standalone === true) {
+        document.body.classList.add('standalone');
+        console.log('App rodando em modo standalone (adicionado à tela inicial)');
+      }
     </script>
   </body>
 </html>

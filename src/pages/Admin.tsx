@@ -132,7 +132,7 @@ ${recipe.modo_preparo
 
   return (
     <div className="min-h-screen bg-background safe-pb">
-      <Header title="Área Admin" subtitle="Gerenciar conteúdo" />
+      <Header title="Área Administrativa" subtitle="Gerenciar conteúdo" />
 
       <main className="px-4 py-4 max-w-lg mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">

@@ -7,8 +7,8 @@ interface HeaderProps {
 
 export function Header({ title = "Maria Fitness", subtitle }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border supports-[backdrop-filter]:bg-card/60">
-      <div className="flex items-center justify-center gap-3 h-16 px-4">
+    <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border supports-[backdrop-filter]:bg-card/60 ">
+      <div className="flex items-center justify-center gap-3 h-16 px-4 ">
         <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
           <img
             src="/day.png"

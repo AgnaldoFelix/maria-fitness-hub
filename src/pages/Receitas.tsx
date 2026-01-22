@@ -53,7 +53,7 @@ export default function Receitas() {
         </div>
 
         {/* Category Filter */}
-        <div className="mb-4">
+        <div className="mb-4 overflow-y-auto">
           <CategoryFilter
             categories={categories}
             selected={selectedCategory}
