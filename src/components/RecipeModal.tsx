@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,8 +23,20 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
   const { data: settings } = useSettings();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const whatsappNumero = settings?.whatsapp_numero || "5511999999999";
+
+  // Detecta se está em dispositivo móvel
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   if (!recipe) return null;
 
@@ -135,14 +147,14 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
       const stepContent = stepNumberMatch ? step.slice(stepNumberMatch[0].length).trim() : step;
       
       return (
-        <div key={index} className="bg-gradient-to-r from-background to-muted/20 rounded-lg p-4 border border-muted/50">
-          <div className="flex gap-4">
+        <div key={index} className="bg-gradient-to-r from-background to-muted/20 rounded-xl p-4 border border-muted/50">
+          <div className="flex gap-3 md:gap-4">
             <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-primary to-primary/70 text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold shadow-sm">
               {stepNumber}
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words">
-                {autoBreakText(stepContent, 55)}
+                {autoBreakText(stepContent, isMobile ? 45 : 55)}
               </div>
             </div>
           </div>
@@ -203,11 +215,44 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-0 sm:rounded-lg">
-        {/* Header com botão de fechar */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-4 py-3 flex items-center justify-between">
-          <DialogHeader className="text-left">
-            <DialogTitle className="font-heading text-lg truncate">
+      <DialogContent className="
+        sm:max-w-lg 
+        w-full 
+        h-[95vh] 
+        max-h-[95vh]
+        m-0 
+        sm:m-4
+        sm:rounded-lg
+        rounded-t-2xl
+        rounded-b-none
+        fixed 
+        bottom-0
+        sm:relative
+        sm:bottom-auto
+        p-0 
+        overflow-hidden
+        border-0
+        sm:border
+        shadow-2xl
+        sm:shadow-lg
+      ">
+        {/* Header fixo no topo */}
+        <div className="
+          sticky 
+          top-0 
+          z-50 
+          bg-background 
+          border-b 
+          px-4 
+          py-3 
+          flex 
+          items-center 
+          justify-between
+          h-[60px]
+          flex-shrink-0
+        ">
+          <DialogHeader className="text-left max-w-[calc(100%-50px)]">
+            <DialogTitle className="font-heading text-lg truncate leading-tight">
               {recipe.nome}
             </DialogTitle>
           </DialogHeader>
@@ -215,18 +260,26 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="h-8 w-8"
+            className="h-9 w-9 rounded-full flex-shrink-0"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
         </div>
 
-        <div className="overflow-y-auto">
+        {/* Conteúdo principal com scroll */}
+        <div className="
+          flex-1 
+          overflow-y-auto 
+          overflow-x-hidden
+          overscroll-contain
+          -webkit-overflow-scrolling-touch
+          h-[calc(100%-120px)]
+        ">
           {/* Imagem da receita */}
           {recipe.foto_url && (
-            <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+            <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-muted to-muted/50">
               {!imageLoaded && !imageError && (
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center bg-muted">
                   <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                 </div>
               )}
@@ -246,9 +299,9 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
             </div>
           )}
 
-          <div className="p-5 space-y-6">
+          <div className="p-4 sm:p-5 space-y-5 pb-5">
             {/* Meta informações */}
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="gap-1 text-sm py-1.5 px-3">
                 <span className="text-base">{getCategoryEmoji(recipe.categoria)}</span>
                 <span>{recipe.categoria}</span>
@@ -262,12 +315,12 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
             {/* Ingredientes */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Utensils className="w-5 h-5 text-primary" />
+                <Utensils className="w-5 h-5 text-primary flex-shrink-0" />
                 <h3 className="font-heading font-semibold text-lg">Ingredientes</h3>
               </div>
               <div className="bg-muted/20 rounded-xl p-4 border border-muted/50">
                 <div className="text-sm leading-relaxed text-foreground whitespace-pre-wrap break-words font-medium">
-                  {autoBreakText(formatIngredients(recipe.ingredientes), 60)}
+                  {autoBreakText(formatIngredients(recipe.ingredientes), isMobile ? 50 : 60)}
                 </div>
               </div>
             </div>
@@ -275,7 +328,7 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
             {/* Modo de Preparo */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <ChefHat className="w-5 h-5 text-primary" />
+                <ChefHat className="w-5 h-5 text-primary flex-shrink-0" />
                 <h3 className="font-heading font-semibold text-lg">Modo de Preparo</h3>
               </div>
               <div className="space-y-3">
@@ -285,63 +338,74 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
 
             {/* Dicas e Observações */}
             {recipe.observacoes && (
-              <div className="space-y-3">
+              <div className="">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-yellow-600 text-sm">💡</span>
                   </div>
                   <h3 className="font-heading font-semibold text-lg">Dicas</h3>
                 </div>
                 <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-4 border border-yellow-200/50">
                   <p className="text-sm text-amber-800 leading-relaxed whitespace-pre-wrap break-words">
-                    {autoBreakText(recipe.observacoes, 60)}
+                    {autoBreakText(recipe.observacoes, isMobile ? 50 : 60)}
                   </p>
                 </div>
               </div>
             )}
+          </div>
+        </div>
 
-            {/* Ações */}
-            <div className="sticky bottom-0 bg-background pt-4 border-t">
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  className="gap-2 h-11 border-2"
-                  onClick={handleCopyRecipe}
-                >
-                  <Copy className="w-4 h-4" />
-                  Copiar
-                </Button>
-                <Button
-                  className="gap-2 h-11 bg-gradient-to-r from-success to-emerald-600 hover:from-success/90 hover:to-emerald-600/90 text-white border-0 shadow-md"
-                  onClick={handleShareWhatsApp}
-                >
-                  <Share2 className="w-4 h-4" />
-                  Compartilhar
-                </Button>
-              </div>
-              
-              <Button
-                variant="outline"
-                className="w-full gap-2 mt-3 h-11 border-primary/30 hover:border-primary/50 hover:bg-primary/5"
-                onClick={handleContact}
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span className="text-sm">Tirar dúvida sobre esta receita</span>
-              </Button>
-              
-              <div className="flex items-center justify-center gap-2 mt-4 pt-3 border-t">
-                <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/10">
-                  <img 
-                    src="/day.png" 
-                    alt="Maria Fitness" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Receita criada por <span className="font-medium text-primary">Maria Fitness</span> ✨
-                </p>
-              </div>
+        {/* Ações fixas na parte inferior */}
+        <div className="
+          sticky 
+          bottom-0 
+          z-40 
+          bg-background 
+          border-t 
+          p-4
+          pt-3
+          flex-shrink-0
+          h-[120px]
+          shadow-[0_-4px_12px_rgba(0,0,0,0.05)]
+        ">
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <Button
+              variant="outline"
+              className="gap-2 h-11 border-2 text-sm"
+              onClick={handleCopyRecipe}
+            >
+              <Copy className="w-4 h-4" />
+              Copiar
+            </Button>
+            <Button
+              className="gap-2 h-11 bg-gradient-to-r from-success to-emerald-600 hover:from-success/90 hover:to-emerald-600/90 text-white border-0 shadow-md text-sm"
+              onClick={handleShareWhatsApp}
+            >
+              <Share2 className="w-4 h-4" />
+              Compartilhar
+            </Button>
+          </div>
+          
+          <Button
+            variant="outline"
+            className="w-full gap-2 h-11 border-primary/30 hover:border-primary/50 hover:bg-primary/5 text-sm"
+            onClick={handleContact}
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>Tirar dúvida</span>
+          </Button>
+          
+          <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t">
+            <div className="w-5 h-5 rounded-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/10 flex-shrink-0">
+              <img 
+                src="/day.png" 
+                alt="Maria Fitness" 
+                className="w-full h-full object-cover"
+              />
             </div>
+            <p className="text-xs text-muted-foreground truncate">
+              Receita por <span className="font-medium text-primary">Maria Fitness</span> ✨
+            </p>
           </div>
         </div>
       </DialogContent>
