@@ -107,14 +107,26 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
-    
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* ❌ REMOVER: position: fixed; */
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Poppins', sans-serif;
   }
-}
 
+  /* ✅ ADICIONAR ISTO: */
+  [class*="scroll"] {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevenir comportamentos ruins no mobile */
+  button, a {
+    touch-action: manipulation;
+  }
+}
 
 /* Mobile optimizations */
 @layer utilities {
@@ -183,3 +195,5 @@
     background-color: #1f2937;
   }
 }
+
+

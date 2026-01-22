@@ -251,13 +251,23 @@
           }
         }, 800);
       });
-      
-      // Prevenir comportamento padrão de swipe no iOS
-      document.addEventListener('touchmove', function(e) {
-        if (e.scale !== 1) {
+
+       if (isIOS) {
+        // Apenas prevenir zoom pinch
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+          const now = Date.now();
+          if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        }, { passive: true });
+        
+        // Prevenir zoom com dois dedos (mais suave)
+        document.addEventListener('gesturestart', function(e) {
           e.preventDefault();
-        }
-      }, { passive: false });
+        }, { passive: false });
+      }
       
       // Fix para inputs no iOS
       if (isIOS) {

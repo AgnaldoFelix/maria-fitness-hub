@@ -216,23 +216,27 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
   };
 
   return (
-<Modal
-  isOpen={open}
-  onOpenChange={onClose}
-  size="lg"
-  backdrop="blur"
-  classNames={{
-    base: "bg-background",
-    closeButton: "top-2 right-2",
-    backdrop: "bg-black/50",
-  }}
->
+    <Modal
+      isOpen={open}
+      onOpenChange={onClose}
+      size="lg"
+      scrollBehavior="inside"
+      backdrop="blur"
+      classNames={{
+        base: "max-h-[90vh] bg-background", // ✅ 90vh em vez de 50vh
+        closeButton: "top-2 right-2",
+        backdrop: "bg-black/50",
+        wrapper: "pb-20", // ✅ Espaço para BottomNav
+      }}
+    >
       <ModalContent className="bg-background">
         <ModalHeader className="flex flex-col gap-1 bg-background">
           <h2 className="text-lg font-semibold truncate">{recipe.nome}</h2>
         </ModalHeader>
 
-        <ScrollShadow hideScrollBar className="w-full h-full max-h-[50vh]">
+        <ScrollShadow 
+        hideScrollBar 
+        className="w-full h-full max-h-[55vh]">
           <ModalBody className="gap-6 pb-6 bg-background">
             {/* Imagem da receita */}
             {recipe.foto_url && (
