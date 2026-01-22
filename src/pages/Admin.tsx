@@ -161,7 +161,7 @@ ${recipe.modo_preparo
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 overflow-y-auto max-h-[60vh]">
                 {recipes.map((recipe) => (
                   <Card key={recipe.id} className="animate-fade-in">
                     <CardContent className="p-3">
@@ -244,7 +244,7 @@ ${recipe.modo_preparo
                 <Loader2 className="w-8 h-8 animate-spin text-success" />
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 overflow-y-auto max-h-[60vh]">
                 {products.map((product) => (
                   <Card key={product.id} className="animate-fade-in">
                     <CardContent className="p-3">

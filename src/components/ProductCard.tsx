@@ -19,7 +19,7 @@ export function ProductCard({
   preco,
   foto_url,
   mensagem_whatsapp,
-  whatsapp_numero = "5511999999999",
+  whatsapp_numero = "5579996848609",
 }: ProductCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -27,9 +27,9 @@ export function ProductCard({
   const handleComprar = (e: React.MouseEvent) => {
     e.stopPropagation();
     const mensagem = mensagem_whatsapp || 
-      `Olá Maria! Tenho interesse em adquirir o produto ${nome}. Pode me informar mais detalhes sobre disponibilidade e forma de pagamento?`;
+      `*Olá Maria!* Tenho interesse em adquirir o produto *${nome}*. Pode me informar mais detalhes sobre disponibilidade e forma de pagamento?`;
     const encodedMessage = encodeURIComponent(mensagem);
-    window.open(`https://wa.me/${whatsapp_numero}?text=${encodedMessage}`, "_blank");
+    window.open(`https://wa.me/${5579996848609}?text=${encodedMessage}`, "_blank");
   };
 
   const formatPrice = (price: number) => {

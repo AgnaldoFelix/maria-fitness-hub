@@ -10,11 +10,11 @@ import { useSettings } from "@/hooks/useSettings";
 export default function Produtos() {
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearch = useDeferredValue(searchQuery);
-  
+
   const { data: products = [], isLoading } = useProducts(true);
   const { data: settings } = useSettings();
 
-  const whatsappNumero = settings?.whatsapp_numero || "5511999999999";
+  const whatsappNumero = settings?.whatsapp_numero || "55079996848609";
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -29,12 +29,11 @@ export default function Produtos() {
   return (
     <div className="min-h-screen bg-background safe-pb">
       <Header subtitle="Produtos Fit" />
-      
+
       <main className="px-4 py-4 max-w-lg mx-auto">
         {/* Search */}
         <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-sm pb-4">
           <div className="relative">
-            <BottomNav />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar produto..."
@@ -55,7 +54,7 @@ export default function Produtos() {
           <>
             {/* Products Grid */}
             {filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="overflow-y-auto max-h-[60vh] grid grid-cols-2 gap-3">
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -74,9 +73,13 @@ export default function Produtos() {
                 <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                   <Search className="w-10 h-10 text-muted-foreground" />
                 </div>
-                <h3 className="font-medium text-lg mb-2">Nenhum produto encontrado</h3>
+                <h3 className="font-medium text-lg mb-2">
+                  Nenhum produto encontrado
+                </h3>
                 <p className="text-muted-foreground">
-                  {deferredSearch ? "Tente buscar com outros termos" : "Nenhum produto cadastrado ainda"}
+                  {deferredSearch
+                    ? "Tente buscar com outros termos"
+                    : "Nenhum produto cadastrado ainda"}
                 </p>
               </div>
             )}

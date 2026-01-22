@@ -1,5 +1,4 @@
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button } from "@heroui/react";
 
 interface CategoryFilterProps {
   categories: string[];
@@ -8,31 +7,20 @@ interface CategoryFilterProps {
 }
 
 export function CategoryFilter({ categories, selected, onSelect }: CategoryFilterProps) {
+  const allItems = ["Todas", ...categories];
+  
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-      <Button
-        variant={selected === "Todas" ? "default" : "outline"}
-        size="sm"
-        onClick={() => onSelect("Todas")}
-        className={cn(
-          "flex-shrink-0 rounded-full",
-          selected === "Todas" && "bg-primary text-primary-foreground"
-        )}
-      >
-        Todas
-      </Button>
-      {categories.map((category) => (
+    <div className="grid grid-cols-3 gap-2 w-full">
+      {allItems.map((item) => (
         <Button
-          key={category}
-          variant={selected === category ? "default" : "outline"}
+          key={item}
           size="sm"
-          onClick={() => onSelect(category)}
-          className={cn(
-            "flex-shrink-0 rounded-full",
-            selected === category && "bg-secondary text-secondary-foreground"
-          )}
+          variant={selected === item ? "solid" : "bordered"}
+          color={selected === item ? (item === "Todas" ? "primary" : "secondary") : "default"}
+          onClick={() => onSelect(item)}
+          className="text-xs sm:text-sm font-medium rounded-lg w-full"
         >
-          {category}
+          {item}
         </Button>
       ))}
     </div>
