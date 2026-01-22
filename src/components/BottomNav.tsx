@@ -1,7 +1,7 @@
-// components/BottomNav.tsx - Versão ultra compacta
 import { UtensilsCrossed, ShoppingBag, Settings, ExternalLink } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useIPAuth } from "@/hooks/ipUtils";
 
 interface NavItem {
   label: string;
@@ -29,6 +29,7 @@ interface BottomNavProps {
 
 export function BottomNav({ position = 'fixed', className }: BottomNavProps) {
   const location = useLocation();
+  const { isAllowed, loading } = useIPAuth();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -39,7 +40,6 @@ export function BottomNav({ position = 'fixed', className }: BottomNavProps) {
       position === 'sticky' && "sticky",
       className
     )}>
-      {/* Conteúdo principal + footer em uma única div */}
       <div className="max-w-lg mx-auto">
         {/* Navegação */}
         <div className="flex items-center justify-around h-16 px-4">
@@ -61,21 +61,33 @@ export function BottomNav({ position = 'fixed', className }: BottomNavProps) {
               </Link>
             );
           })}
-          <Link
-            to="/admin"
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 px-4 py-2 transition-colors",
-              location.pathname.startsWith("/admin")
-                ? "text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Settings className="w-5 h-5" />
-            <span className="text-xs font-medium">Admin</span>
-          </Link>
+          
+          {/* Só mostra Admin se o IP estiver autorizado */}
+          {!loading && isAllowed && (
+            <Link
+              to="/admin"
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 px-4 py-2 transition-colors",
+                location.pathname.startsWith("/admin")
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Settings className="w-5 h-5" />
+              <span className="text-xs font-medium">Admin</span>
+            </Link>
+          )}
+          
+          {/* Opção: Mostrar um botão desativado ou mensagem para IPs não autorizados */}
+          {!loading && !isAllowed && (
+            <div className="flex flex-col items-center justify-center gap-1 px-4 py-2 opacity-50 cursor-not-allowed">
+              <Settings className="w-5 h-5" />
+              <span className="text-xs font-medium">Admin</span>
+            </div>
+          )}
         </div>
 
-        {/* Footer - linha única muito compacta */}
+        {/* Footer */}
         <div className="border-t border-border/10">
           <div className="px-4 py-1 text-center">
             <p className="text-[12px] text-muted-foreground/60 leading-tight">
