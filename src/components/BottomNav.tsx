@@ -80,7 +80,7 @@ export function BottomNav({ position = 'fixed', className }: BottomNavProps) {
           <div className="px-4 py-1 text-center">
             <p className="text-[12px] text-muted-foreground/60 leading-tight">
               <span className="inline-flex items-center gap-0.5">
-                Desenvolvido com <span className="text-red-500 text-[20px]"></span> por{" "}
+                Desenvolvido<span className="text-red-500 text-[20px]"></span> por{" "}
                 <a 
                   href="https://www.linkedin.com/in/agnaldofelix/" 
                   target="_blank" 
