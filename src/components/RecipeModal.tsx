@@ -6,7 +6,7 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  Badge,
+  Chip,
   ScrollShadow,
   Card,
   CardBody,
@@ -242,14 +242,14 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
 
             {/* Meta informações */}
             <div className="flex items-center gap-3 flex-wrap">
-              <Badge
+              <Chip
                 color="secondary" 
                 variant="flat"
                 className="text-sm py-1.5 px-3 gap-1"
               >
                 <span className="text-base">{getCategoryEmoji(recipe.categoria)}</span>
                 <span>{recipe.categoria}</span>
-              </Badge>
+              </Chip>
               <div className="flex items-center gap-1.5 text-default-500 text-sm bg-default-100 rounded-full py-1.5 px-3">
                 <Clock className="w-4 h-4 flex-shrink-0" />
                 <span className="font-medium">{recipe.tempo}</span>
