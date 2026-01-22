@@ -7,6 +7,7 @@ import { CategoryFilter } from "@/components/CategoryFilter";
 import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useRecipes, type Recipe } from "@/hooks/useRecipes";
+import { Footer } from "@/components/Footer"; // Importe o Footer
 
 const categories = ["Café da Manhã", "Lanche", "Doce Fit", "Low Carb", "Proteico"];
 
@@ -36,11 +37,13 @@ export default function Receitas() {
   return (
     <div className="min-h-screen bg-background safe-pb">
       <Header subtitle="Receitas Fitness" />
+      <Footer/>
       
-      <main className="px-4 py-4 max-w-lg mx-auto">
+      <main className="px-4 py-4 max-w-lg mx-auto flex-1">
         {/* Search */}
         <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-sm pb-4">
           <div className="relative">
+            <BottomNav />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar receita..."
@@ -50,8 +53,9 @@ export default function Receitas() {
               aria-label="Buscar receitas"
             />
           </div>
+       
         </div>
-
+  
         {/* Category Filter */}
         <div className="mb-4 overflow-y-auto">
           <CategoryFilter
@@ -96,6 +100,8 @@ export default function Receitas() {
             )}
           </>
         )}
+
+
       </main>
 
       <RecipeModal
@@ -104,7 +110,8 @@ export default function Receitas() {
         onClose={() => setIsModalOpen(false)}
       />
 
-      <BottomNav />
+ 
+      <Footer className="fixed bottom-0 left-0 right-0 z-50"/>
     </div>
   );
 }

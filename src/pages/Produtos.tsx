@@ -34,6 +34,7 @@ export default function Produtos() {
         {/* Search */}
         <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-sm pb-4">
           <div className="relative">
+            <BottomNav />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar produto..."
