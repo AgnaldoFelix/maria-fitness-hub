@@ -103,7 +103,7 @@ export default function Receitas() {
                   className="overflow-y-auto" 
                   style={{ height: containerHeight }}
                 >
-                  <div className="grid grid-cols-2 gap-3 pb-4">
+                  <div className="grid grid-cols-2 gap-3 pb-2">
                     {filteredRecipes.map((recipe) => (
                       <RecipeCard
                         key={recipe.id}
@@ -119,7 +119,7 @@ export default function Receitas() {
                 </div>
               ) : (
                 <div 
-                  className="flex items-center justify-center" 
+                  className="flex items-center justify-center mr-[110px] p-4" 
                   style={{ height: containerHeight }}
                 >
                   <div className="text-center px-4">

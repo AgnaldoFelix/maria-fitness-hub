@@ -200,6 +200,7 @@
 /* Adicione ao seu CSS global */
 html, body {
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Garantir que elementos pais não bloqueiem o scroll */
