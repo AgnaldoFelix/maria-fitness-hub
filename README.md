@@ -1,3 +1,5 @@
+![MariaFitness Banner](./public/banner.png)
+
 # 🏋️ Maria Fitness
 
 > **Receitas Fitness & Produtos Saudáveis** | Uma plataforma moderna para compartilhar receitas deliciosas e vender produtos fitness com integração WhatsApp
