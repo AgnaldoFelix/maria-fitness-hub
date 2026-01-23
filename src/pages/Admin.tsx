@@ -135,7 +135,7 @@ ${recipe.modo_preparo
     <div className="min-h-screen bg-background safe-pb">
       <Header title="Área Administrativa" subtitle="Gerenciar conteúdo" />
 
-      <main className="px-4 py-4 max-w-lg mx-auto ">
+      <main className="px-4 py-4 max-w-lg mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-3 h-11">
             <TabsTrigger value="receitas" className="gap-2 text-sm">
@@ -166,7 +166,7 @@ ${recipe.modo_preparo
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="space-y-3 overflow-y-auto max-h-[60vh] pb-[20px]">
+              <div className="space-y-3 overflow-y-auto max-h-[60vh]">
                 {recipes.map((recipe) => (
                   <Card key={recipe.id} className="animate-fade-in">
                     <CardContent className="p-3">
@@ -249,7 +249,7 @@ ${recipe.modo_preparo
                 <Loader2 className="w-8 h-8 animate-spin text-success" />
               </div>
             ) : (
-              <div className="space-y-3 overflow-y-auto max-h-[60vh] pb-[20px]">
+              <div className="space-y-3 overflow-y-auto max-h-[60vh]">
                 {products.map((product) => (
                   <Card key={product.id} className="animate-fade-in">
                     <CardContent className="p-3">
