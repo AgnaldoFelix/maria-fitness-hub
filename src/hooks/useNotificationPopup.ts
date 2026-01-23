@@ -12,7 +12,6 @@ export function useNotificationPopup() {
   const [currentNotification, setCurrentNotification] = useState<AppNotification | null>(null);
   const [hasNotification, setHasNotification] = useState(false);
 
-  // Verifica se deve mostrar notificação ao montar o componente
   useEffect(() => {
     const checkForNotification = () => {
       if (shouldShowNotification()) {
@@ -21,8 +20,6 @@ export function useNotificationPopup() {
           setCurrentNotification(notification);
           setHasNotification(true);
           setIsOpen(true);
-          
-          // Marca como vista se for mostrar apenas uma vez
           if (notification.showOncePerSession) {
             const userId = getUserId();
             markNotificationAsSeen(userId, notification.id);
@@ -31,29 +28,37 @@ export function useNotificationPopup() {
       }
     };
 
-    // Pequeno delay para não atrapalhar a renderização inicial
-    const timer = setTimeout(checkForNotification, 1000);
-    return () => clearTimeout(timer);
+    // Verifica a cada 2 segundos se há nova notificação ativa
+    const interval = setInterval(checkForNotification, 2000);
+    
+    // Verificação inicial
+    checkForNotification();
+
+    return () => clearInterval(interval);
   }, []);
 
-  const closePopup = () => {
-    setIsOpen(false);
-  };
-
+  const closePopup = () => setIsOpen(false);
+  
   const manuallyOpenPopup = () => {
     const notification = getActiveNotification();
     if (notification?.isActive) {
       setCurrentNotification(notification);
       setIsOpen(true);
+      
+      // Marca como vista se for mostrar apenas uma vez
+      if (notification.showOncePerSession) {
+        const userId = getUserId();
+        markNotificationAsSeen(userId, notification.id);
+      }
     }
   };
 
-  return {
-    isOpen,
-    setIsOpen,
-    currentNotification,
-    hasNotification,
-    closePopup,
-    manuallyOpenPopup,
+  return { 
+    isOpen, 
+    setIsOpen, 
+    currentNotification, 
+    hasNotification, 
+    closePopup, 
+    manuallyOpenPopup 
   };
 }
