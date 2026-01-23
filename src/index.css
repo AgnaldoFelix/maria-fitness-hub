@@ -197,3 +197,12 @@
 }
 
 
+/* Adicione ao seu CSS global */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Garantir que elementos pais não bloqueiem o scroll */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
