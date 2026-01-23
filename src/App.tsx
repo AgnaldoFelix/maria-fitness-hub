@@ -2,13 +2,16 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Receitas from "./pages/Receitas";
 import Produtos from "./pages/Produtos";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { useIPAuth } from "@/hooks/ipUtils";
-import { Loader2 } from "lucide-react";
+import { Loader2, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { NotificationPopup } from "@/components/NotificationPopup";
+import { useNotificationPopup } from "@/hooks/useNotificationPopup";
 
 const queryClient = new QueryClient();
 
@@ -50,11 +53,11 @@ function ProtectedAdminRoute() {
   return <Admin />;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+function AppContent() {
+  const { isOpen, currentNotification, closePopup } = useNotificationPopup();
+
+  return (
+    <>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Receitas />} />
@@ -64,6 +67,21 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <NotificationPopup
+        notification={currentNotification!}
+        isOpen={isOpen}
+        onClose={closePopup}
+      />
+    </>
+  );
+}
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <AppContent />
     </TooltipProvider>
   </QueryClientProvider>
 );

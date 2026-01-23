@@ -4,7 +4,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, UtensilsCrossed, ShoppingBag, Edit, Trash2, Copy, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Plus, UtensilsCrossed, ShoppingBag, Edit, Trash2, Copy, Eye, EyeOff, Loader2, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { useRecipes, useDeleteRecipe, type Recipe } from "@/hooks/useRecipes";
@@ -21,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { NotificationManager } from "@/components/NotificationManager";
 
 export default function Admin() {
   const { toast } = useToast();
@@ -134,9 +135,9 @@ ${recipe.modo_preparo
     <div className="min-h-screen bg-background safe-pb">
       <Header title="Área Administrativa" subtitle="Gerenciar conteúdo" />
 
-      <main className="px-4 py-4 max-w-lg mx-auto">
+      <main className="px-4 py-4 max-w-lg mx-auto ">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 h-11">
+          <TabsList className="grid w-full grid-cols-3 h-11">
             <TabsTrigger value="receitas" className="gap-2 text-sm">
               <UtensilsCrossed className="w-4 h-4" />
               Receitas
@@ -144,6 +145,10 @@ ${recipe.modo_preparo
             <TabsTrigger value="produtos" className="gap-2 text-sm">
               <ShoppingBag className="w-4 h-4" />
               Produtos
+            </TabsTrigger>
+            <TabsTrigger value="popup" className="gap-2 text-sm">
+              <Bell className="w-4 h-4" />
+              Popup
             </TabsTrigger>
           </TabsList>
 
@@ -161,7 +166,7 @@ ${recipe.modo_preparo
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="space-y-3 overflow-y-auto max-h-[60vh]">
+              <div className="space-y-3 overflow-y-auto max-h-[60vh] pb-[20px]">
                 {recipes.map((recipe) => (
                   <Card key={recipe.id} className="animate-fade-in">
                     <CardContent className="p-3">
@@ -244,7 +249,7 @@ ${recipe.modo_preparo
                 <Loader2 className="w-8 h-8 animate-spin text-success" />
               </div>
             ) : (
-              <div className="space-y-3 overflow-y-auto max-h-[60vh]">
+              <div className="space-y-3 overflow-y-auto max-h-[60vh] pb-[20px]">
                 {products.map((product) => (
                   <Card key={product.id} className="animate-fade-in">
                     <CardContent className="p-3">
@@ -293,6 +298,10 @@ ${recipe.modo_preparo
                 )}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="popup" className="space-y-4">
+            <NotificationManager />
           </TabsContent>
         </Tabs>
       </main>

@@ -27,7 +27,7 @@ export default function Produtos() {
   }, [products, deferredSearch]);
 
   return (
-    <div className="min-h-screen bg-background safe-pb">
+    <div className="min-h-screen bg-background safe-pb ">
       <Header subtitle="Produtos Fit" />
 
       <main className="px-4 py-4 max-w-lg mx-auto">
@@ -54,7 +54,7 @@ export default function Produtos() {
           <>
             {/* Products Grid */}
             {filteredProducts.length > 0 ? (
-              <div className="overflow-y-auto max-h-[70vh] grid grid-cols-2 gap-3">
+              <div className="overflow-y-auto max-h-[70vh] grid grid-cols-2 gap-2 pb-[30px]">
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}

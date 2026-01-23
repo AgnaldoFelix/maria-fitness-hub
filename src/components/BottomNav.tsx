@@ -40,7 +40,7 @@ export function BottomNav({ position = 'fixed', className }: BottomNavProps) {
       position === 'sticky' && "sticky",
       className
     )}>
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto ">
         {/* Navegação */}
         <div className="flex items-center justify-around h-16 px-4">
           {navItems.map((item) => {
