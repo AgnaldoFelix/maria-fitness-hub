@@ -79,7 +79,7 @@ export default function Receitas() {
           </div>
        
           {/* Category Filter */}
-          <div className="w-full overflow-x-auto">
+          <div className="w-full">
             <CategoryFilter
               categories={categories}
               selected={selectedCategory}
