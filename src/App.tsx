@@ -10,10 +10,21 @@ import NotFound from "./pages/NotFound";
 import { useIPAuth } from "@/hooks/ipUtils";
 import { Loader2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-// import { NotificationPopup } from "@/components/NotificationPopup";
-// import { useNotificationPopup } from "@/hooks/useNotificationPopup";
+import SucessoPage from "./pages/Successo";
+import { CheckoutProvider } from "@/contexts/CheckoutContext";
+import { CheckoutModal } from "@/components/checkout/CheckoutModal";
+import { CartDrawer } from "@/components/checkout/CartDrawer";
 
-const queryClient = new QueryClient();
+
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Componente wrapper para proteger a rota Admin
 function ProtectedAdminRoute() {
@@ -41,7 +52,7 @@ function ProtectedAdminRoute() {
           </p>
           <Button 
             variant="outline" 
-            onClick={() => window.location.href = '/'}
+            onClick={() => window.location.href = '/receitas'}
           >
             Voltar para Receitas
           </Button>
@@ -53,35 +64,41 @@ function ProtectedAdminRoute() {
   return <Admin />;
 }
 
+// Componente principal
 function AppContent() {
-  // const { isOpen, currentNotification, closePopup } = useNotificationPopup();
-
   return (
-    <>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/receitas" element={<Receitas />} />
-          <Route path="/" element={<Produtos />} />
-          <Route path="/admin" element={<ProtectedAdminRoute />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-      {/* <NotificationPopup
-        notification={currentNotification!}
-        isOpen={isOpen}
-        onClose={closePopup}
-      /> */}
-    </>
+    <div className="min-h-screen flex flex-col bg-background">
+      
+      <main className="flex-1">
+        <BrowserRouter>
+          <Routes>
+            <Route path="/receitas" element={<Receitas />} />
+            <Route path="/" element={<Produtos />} />
+            <Route path="/admin" element={<ProtectedAdminRoute />} />
+            <Route path="/sucesso" element={<SucessoPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          
+        </BrowserRouter>
+      </main>
+
+      {/* Carrinho lateral */}
+      <CartDrawer />
+
+
+    </div>
   );
 }
 
+// Componente principal da aplicação
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AppContent />
+      <CheckoutProvider>
+        <AppContent />
+        <Toaster />
+        <Sonner />
+      </CheckoutProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

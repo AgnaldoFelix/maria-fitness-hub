@@ -1,11 +1,13 @@
 import { useState, useMemo, useDeferredValue } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
-import { ProductCard } from "@/components/ProductCard";
+
 import { Search, Loader2, Flame } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useProducts } from "@/hooks/useProducts";
 import { useSettings } from "@/hooks/useSettings";
+import { ProductCard } from "@/components/products/ProductCard";
+import { CheckoutModal } from "@/components/checkout/CheckoutModal";
 
 export default function Produtos() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -146,6 +148,9 @@ export default function Produtos() {
             )}
           </>
         )}
+              {/* Modal de Checkout */}
+      <CheckoutModal />
+
       </main>
 
       <BottomNav />
