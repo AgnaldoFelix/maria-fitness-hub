@@ -58,7 +58,7 @@ export function RecipeCard({
         )}
       </div>
 
-      <CardContent className="p-3 flex-1 flex flex-col">
+      <CardContent className="p-1 flex-1 flex flex-col">
         {/* Nome da receita */}
         <h3 className="font-medium text-sm line-clamp-2 min-h-[2.5rem] mb-2">
           {nome}
