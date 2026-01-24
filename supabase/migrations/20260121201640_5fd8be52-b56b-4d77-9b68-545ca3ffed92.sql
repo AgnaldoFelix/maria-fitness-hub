@@ -81,3 +81,13 @@ CREATE TRIGGER update_configuracoes_updated_at
 BEFORE UPDATE ON public.configuracoes
 FOR EACH ROW
 EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Adicionar coluna de desconto à tabela produtos
+ALTER TABLE public.produtos ADD COLUMN IF NOT EXISTS desconto_percentual NUMERIC(5,2) DEFAULT 0;
+ALTER TABLE public.produtos ADD COLUMN IF NOT EXISTS desconto_ativo BOOLEAN DEFAULT false;
+ALTER TABLE public.produtos ADD COLUMN IF NOT EXISTS preco_original NUMERIC(10,2);
+ALTER TABLE public.produtos ADD COLUMN IF NOT EXISTS data_desconto_inicio TIMESTAMP WITH TIME ZONE;
+ALTER TABLE public.produtos ADD COLUMN IF NOT EXISTS data_desconto_fim TIMESTAMP WITH TIME ZONE;
+
+-- Adicionar coluna para rastrear histórico
+ALTER TABLE public.produtos ADD COLUMN IF NOT EXISTS desconto_historico JSONB DEFAULT '[]'::jsonb;
