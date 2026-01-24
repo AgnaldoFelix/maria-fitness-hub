@@ -101,25 +101,34 @@ export default function Produtos() {
           <>
             {/* Products Grid */}
             {filteredAndSortedProducts.length > 0 ? (
-              <div className="overflow-y-auto max-h-[70vh] grid grid-cols-2 gap-3 pb-[30px]">
-                {filteredAndSortedProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    nome={product.nome}
-                    descricao={product.descricao}
-                    preco={Number(product.preco)}
-                    foto_url={product.foto_url || ""}
-                    mensagem_whatsapp={product.mensagem_whatsapp || undefined}
-                    whatsapp_numero={whatsappNumero}
-                    desconto_percentual={product.desconto_percentual}
-                    desconto_ativo={product.desconto_ativo}
-                    preco_original={product.preco_original}
-                    data_desconto_inicio={product.data_desconto_inicio}
-                    data_desconto_fim={product.data_desconto_fim}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="overflow-y-auto max-h-[70vh] grid grid-cols-2 gap-3 pb-[30px]">
+                  {filteredAndSortedProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      id={product.id}
+                      nome={product.nome}
+                      descricao={product.descricao}
+                      preco={Number(product.preco)}
+                      foto_url={product.foto_url || ""}
+                      mensagem_whatsapp={product.mensagem_whatsapp || undefined}
+                      whatsapp_numero={whatsappNumero}
+                      desconto_percentual={product.desconto_percentual}
+                      desconto_ativo={product.desconto_ativo}
+                      preco_original={product.preco_original}
+                      data_desconto_inicio={product.data_desconto_inicio}
+                      data_desconto_fim={product.data_desconto_fim}
+                    />
+                  ))}
+                </div>
+                
+                {/* Contador de produtos - Centralizado */}
+                <div className="w-full mb-[70px] text-center">
+                  <p className="text-sm text-muted-foreground">
+                    {filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? 'produto encontrado' : 'produtos encontrados'}
+                  </p>
+                </div>
+              </>
             ) : (
               <div className="text-center py-16 px-4">
                 <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
