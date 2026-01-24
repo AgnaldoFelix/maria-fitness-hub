@@ -17,7 +17,7 @@ export function CategoryFilter({
     <div className="w-full overflow-hidden">
       <div
         className="
-    flex gap-3 px-1 py-3 pr-[80px]
+    flex gap-3 px-1 py-3 pr-[60px]
     overflow-x-auto overflow-y-hidden
     snap-x snap-mandatory
     touch-pan-x
