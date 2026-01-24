@@ -1,4 +1,4 @@
-import { useState, useMemo, useDeferredValue, useEffect } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { RecipeCard } from "@/components/RecipeCard";
@@ -16,35 +16,8 @@ export default function Receitas() {
   const deferredSearch = useDeferredValue(searchQuery);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [containerHeight, setContainerHeight] = useState("calc(100vh - 280px)");
 
   const { data: recipes = [], isLoading } = useRecipes(true);
-
-  useEffect(() => {
-    // Função para calcular altura dinâmica
-    const calculateHeight = () => {
-      const header = document.querySelector('header');
-      const searchSection = document.querySelector('.search-section');
-      const bottomNav = document.querySelector('nav');
-      
-      if (header && searchSection && bottomNav) {
-        const headerHeight = header.offsetHeight;
-        const searchHeight = searchSection.offsetHeight;
-        const bottomNavHeight = bottomNav.offsetHeight;
-        
-        const totalHeight = headerHeight + searchHeight + bottomNavHeight + 32; // + padding extra
-        const calculatedHeight = `calc(100vh - ${totalHeight}px)`;
-        setContainerHeight(calculatedHeight);
-      }
-    };
-
-    calculateHeight();
-    window.addEventListener('resize', calculateHeight);
-    
-    return () => {
-      window.removeEventListener('resize', calculateHeight);
-    };
-  }, []);
 
   const filteredRecipes = useMemo(() => {
     return recipes.filter((recipe) => {
@@ -64,9 +37,9 @@ export default function Receitas() {
     <div className="min-h-screen bg-background flex flex-col">
       <Header subtitle="Receitas Fitness" />
 
-      <main className="flex-1 flex flex-col px-4 max-w-lg mx-auto">
+      <main className="flex-1 flex flex-col px-3 max-w-lg mx-auto w-full">
         {/* Search and Filter - Fixed at top */}
-        <div className="search-section sticky top-16 z-30 bg-background/95 backdrop-blur-sm pt-4 pb-4 space-y-3">
+        <div className="search-section sticky top-16 z-30 bg-background/95 backdrop-blur-sm pt-3 pb-3 space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -99,11 +72,8 @@ export default function Receitas() {
             <>
               {/* Recipes Grid with Scroll */}
               {filteredRecipes.length > 0 ? (
-                <div 
-                  className="overflow-y-auto" 
-                  style={{ height: containerHeight }}
-                >
-                  <div className="grid grid-cols-2 gap-3 pb-2">
+                <div className="overflow-y-auto pb-20">
+                  <div className="grid grid-cols-2 gap-2.5 pb-4">
                     {filteredRecipes.map((recipe) => (
                       <RecipeCard
                         key={recipe.id}
@@ -113,22 +83,29 @@ export default function Receitas() {
                         tempo={recipe.tempo}
                         foto_url={recipe.foto_url || ""}
                         onClick={() => handleRecipeClick(recipe)}
+                        className="h-full" // Garante que o card preencha a altura
                       />
                     ))}
                   </div>
+                  
+                  {/* Mostrar contagem de receitas */}
+                  <div className="mt-2 mb-6 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      {filteredRecipes.length} {filteredRecipes.length === 1 ? 'receita encontrada' : 'receitas encontradas'}
+                    </p>
+                  </div>
                 </div>
               ) : (
-                <div 
-                  className="flex items-center justify-center mr-[110px] p-4" 
-                  style={{ height: containerHeight }}
-                >
-                  <div className="text-center px-4">
-                    <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Search className="w-10 h-10 text-muted-foreground" />
+                <div className="flex items-center justify-center h-full min-h-[50vh]">
+                  <div className="text-center px-4 max-w-xs">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Search className="w-8 h-8 text-muted-foreground" />
                     </div>
-                    <h3 className="font-medium text-lg mb-2">Nenhuma receita encontrada</h3>
-                    <p className="text-muted-foreground">
-                      {deferredSearch ? "Tente buscar com outros termos" : "Nenhuma receita cadastrada ainda"}
+                    <h3 className="font-medium text-base mb-2">Nenhuma receita encontrada</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {deferredSearch 
+                        ? "Tente buscar com outros termos" 
+                        : "Nenhuma receita cadastrada ainda"}
                     </p>
                   </div>
                 </div>
