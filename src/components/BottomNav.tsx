@@ -12,12 +12,12 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     label: "Receitas",
-    href: "/",
+    href: "/receitas",
     icon: <UtensilsCrossed className="w-5 h-5" />,
   },
   {
     label: "Produtos",
-    href: "/produtos",
+    href: "/",
     icon: <ShoppingBag className="w-5 h-5" />,
   },
 ];

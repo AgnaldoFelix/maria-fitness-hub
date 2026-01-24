@@ -22,6 +22,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { NotificationManager } from "@/components/NotificationManager";
+import { Percent } from "lucide-react";
+import { DiscountManager } from "@/components/DiscountManager";
 
 export default function Admin() {
   const { toast } = useToast();
@@ -146,9 +148,9 @@ ${recipe.modo_preparo
               <ShoppingBag className="w-4 h-4" />
               Produtos
             </TabsTrigger>
-            <TabsTrigger value="popup" className="gap-2 text-sm">
-              <Bell className="w-4 h-4" />
-              Popup
+            <TabsTrigger value="descontos" className="gap-2 text-sm">
+              <Percent className="w-4 h-4" />
+              Descontos
             </TabsTrigger>
           </TabsList>
 
@@ -300,8 +302,8 @@ ${recipe.modo_preparo
             )}
           </TabsContent>
 
-          <TabsContent value="popup" className="space-y-4">
-            <NotificationManager />
+          <TabsContent value="descontos" className="space-y-4">
+            <DiscountManager />
           </TabsContent>
         </Tabs>
       </main>

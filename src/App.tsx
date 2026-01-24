@@ -10,8 +10,8 @@ import NotFound from "./pages/NotFound";
 import { useIPAuth } from "@/hooks/ipUtils";
 import { Loader2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { NotificationPopup } from "@/components/NotificationPopup";
-import { useNotificationPopup } from "@/hooks/useNotificationPopup";
+// import { NotificationPopup } from "@/components/NotificationPopup";
+// import { useNotificationPopup } from "@/hooks/useNotificationPopup";
 
 const queryClient = new QueryClient();
 
@@ -54,24 +54,24 @@ function ProtectedAdminRoute() {
 }
 
 function AppContent() {
-  const { isOpen, currentNotification, closePopup } = useNotificationPopup();
+  // const { isOpen, currentNotification, closePopup } = useNotificationPopup();
 
   return (
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Receitas />} />
-          <Route path="/produtos" element={<Produtos />} />
+          <Route path="/receitas" element={<Receitas />} />
+          <Route path="/" element={<Produtos />} />
           <Route path="/admin" element={<ProtectedAdminRoute />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-      <NotificationPopup
+      {/* <NotificationPopup
         notification={currentNotification!}
         isOpen={isOpen}
         onClose={closePopup}
-      />
+      /> */}
     </>
   );
 }

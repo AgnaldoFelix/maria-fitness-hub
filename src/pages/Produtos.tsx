@@ -2,7 +2,7 @@ import { useState, useMemo, useDeferredValue } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { ProductCard } from "@/components/ProductCard";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Flame } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useProducts } from "@/hooks/useProducts";
 import { useSettings } from "@/hooks/useSettings";
@@ -14,20 +14,57 @@ export default function Produtos() {
   const { data: products = [], isLoading } = useProducts(true);
   const { data: settings } = useSettings();
 
-  const whatsappNumero = settings?.whatsapp_numero || "55079996848609";
+  const whatsappNumero = settings?.whatsapp_numero || "5579996848609";
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
+  // Função para verificar se um desconto está ativo
+  const isDescontoAtivo = (product: any) => {
+    if (!product.desconto_ativo || !product.desconto_percentual || product.desconto_percentual <= 0) {
+      return false;
+    }
+    
+    const hoje = new Date();
+    const inicio = product.data_desconto_inicio ? new Date(product.data_desconto_inicio) : null;
+    const fim = product.data_desconto_fim ? new Date(product.data_desconto_fim) : null;
+    
+    // Se não tem datas, considera válido apenas pelo status ativo
+    if (!inicio || !fim) {
+      return product.desconto_ativo && product.desconto_percentual > 0;
+    }
+    
+    return hoje >= inicio && hoje <= fim;
+  };
+
+  const filteredAndSortedProducts = useMemo(() => {
+    // Primeiro filtrar pela busca
+    const filtered = products.filter((product) => {
       if (!deferredSearch) return true;
       return (
         product.nome.toLowerCase().includes(deferredSearch.toLowerCase()) ||
         product.descricao.toLowerCase().includes(deferredSearch.toLowerCase())
       );
     });
+
+    // Ordenar: produtos com desconto ativo primeiro (maior desconto primeiro),
+    // depois produtos sem desconto
+    return filtered.sort((a, b) => {
+      const aTemDesconto = isDescontoAtivo(a);
+      const bTemDesconto = isDescontoAtivo(b);
+      
+      if (aTemDesconto && !bTemDesconto) return -1;
+      if (!aTemDesconto && bTemDesconto) return 1;
+      if (aTemDesconto && bTemDesconto) {
+        // Ordenar por maior desconto percentual
+        return (b.desconto_percentual || 0) - (a.desconto_percentual || 0);
+      }
+      return 0;
+    });
   }, [products, deferredSearch]);
 
+  // Contar produtos com desconto ativo
+  const produtosComDesconto = filteredAndSortedProducts.filter(isDescontoAtivo).length;
+
   return (
-    <div className="min-h-screen bg-background safe-pb ">
+    <div className="min-h-screen bg-background safe-pb">
       <Header subtitle="Produtos Fit" />
 
       <main className="px-4 py-4 max-w-lg mx-auto">
@@ -43,6 +80,16 @@ export default function Produtos() {
               aria-label="Buscar produtos"
             />
           </div>
+          
+          {/* Indicador de promoções */}
+          {produtosComDesconto > 0 && (
+            <div className="flex items-center gap-2 mt-3">
+              <Flame className="w-4 h-4 text-red-500" />
+              <span className="text-sm font-medium text-red-600">
+                {produtosComDesconto} produto{produtosComDesconto !== 1 ? 's' : ''} em promoção!
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Loading State */}
@@ -53,9 +100,9 @@ export default function Produtos() {
         ) : (
           <>
             {/* Products Grid */}
-            {filteredProducts.length > 0 ? (
-              <div className="overflow-y-auto max-h-[70vh] grid grid-cols-2 gap-2 pb-[30px]">
-                {filteredProducts.map((product) => (
+            {filteredAndSortedProducts.length > 0 ? (
+              <div className="overflow-y-auto max-h-[70vh] grid grid-cols-2 gap-3 pb-[30px]">
+                {filteredAndSortedProducts.map((product) => (
                   <ProductCard
                     key={product.id}
                     id={product.id}
@@ -65,6 +112,11 @@ export default function Produtos() {
                     foto_url={product.foto_url || ""}
                     mensagem_whatsapp={product.mensagem_whatsapp || undefined}
                     whatsapp_numero={whatsappNumero}
+                    desconto_percentual={product.desconto_percentual}
+                    desconto_ativo={product.desconto_ativo}
+                    preco_original={product.preco_original}
+                    data_desconto_inicio={product.data_desconto_inicio}
+                    data_desconto_fim={product.data_desconto_fim}
                   />
                 ))}
               </div>
