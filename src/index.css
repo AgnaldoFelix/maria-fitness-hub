@@ -271,3 +271,126 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* No seu arquivo CSS global */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Estilo para código */
+code {
+  font-family: 'Courier New', monospace;
+}
+
+/* Gradiente suave */
+.gradient-success {
+  background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%);
+}
+
+/* src/index.css ou src/App.css */
+
+/* Estilização do dropdown de parcelamento */
+.installment-dropdown {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar para dropdown */
+.installment-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.installment-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.installment-dropdown::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.installment-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Hover effect para opções do dropdown */
+.installment-option-hover:hover {
+  background-color: #f9fafb;
+}
+
+/* Estilo para opção selecionada */
+.installment-option-selected {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #047857;
+}
+
+/* Badge para juros */
+.interest-badge {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* Badge para sem juros */
+.no-interest-badge {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+  .installment-dropdown {
+    max-height: 50vh;
+  }
+}
+/* src/index.css */
+
+/* Estilos para PIX EfiPay */
+.pix-efipay-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+}
+
+/* QR Code container */
+.qr-code-container {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Botão de verificação PIX */
+.pix-verify-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  transition: all 0.3s ease;
+}
+
+.pix-verify-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+}

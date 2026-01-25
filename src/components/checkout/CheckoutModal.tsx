@@ -22,33 +22,18 @@ export function CheckoutModal() {
     setClientSecret('');
     
     try {
-      // Tenta a rota principal primeiro
-      let response = await fetch('http://localhost:8000/create-payment-intent', {
+      const response = await fetch('http://https://mmfitness-backend.onrender.com/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          amount: Math.round(total * 100), // Stripe usa centavos
-          currency: 'brl',
+          amount: total,
           description: `Compra de ${cart.length} produtos`
         })
       });
 
-      // Se falhar, tenta a rota alternativa
       if (!response.ok) {
-        response = await fetch('http://localhost:8000/api/create-payment-intent', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            amount: Math.round(total * 100),
-            currency: 'brl',
-            description: `Compra de ${cart.length} produtos`
-          })
-        });
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erro ${response.status}: ${errorText || 'Não foi possível criar o pagamento'}`);
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Não foi possível criar o pagamento');
       }
       
       const data = await response.json();
@@ -56,7 +41,7 @@ export function CheckoutModal() {
       if (data.success && data.client_secret) {
         setClientSecret(data.client_secret);
       } else {
-        throw new Error(data.detail || 'Resposta inválida do servidor');
+        throw new Error('Resposta inválida do servidor');
       }
     } catch (err: any) {
       console.error('❌ Erro ao criar pagamento:', err);
@@ -72,24 +57,49 @@ export function CheckoutModal() {
     }
   }, [isCheckoutOpen, cart]);
 
-  const handleSuccess = async (paymentId: string) => {
-    console.log('✅ Pagamento bem-sucedido:', paymentId);
+  const handleSuccess = async (paymentId: string, paymentMethod?: string, installmentData?: any) => {
+    console.log('✅ Pagamento bem-sucedido:', paymentId, 'Método:', paymentMethod);
     
-    try {
-      const verifyResponse = await fetch(`http://localhost:8000/api/verify-payment/${paymentId}`);
-      if (verifyResponse.ok) {
-        await verifyResponse.json();
+    // Para pagamentos via cartão, verifica com Stripe
+    if (paymentMethod === 'card') {
+      try {
+        const verifyResponse = await fetch(`https://mfitness-backend.onrender.com/verify-payment/${paymentId}`);
+        if (verifyResponse.ok) {
+          await verifyResponse.json();
+        }
+      } catch (err) {
+        console.log('ℹ️ Não foi possível verificar o pagamento Stripe');
       }
-    } catch (err) {
-      console.log('ℹ️ Não foi possível verificar o pagamento');
+    }
+    
+    // Para PIX, verifica com EfiPay
+    if (paymentMethod === 'pix') {
+      try {
+        const verifyResponse = await fetch(`http://https://mmfitness-backend.onrender.com/check-pix-status/${paymentId}`);
+        if (verifyResponse.ok) {
+          await verifyResponse.json();
+        }
+      } catch (err) {
+        console.log('ℹ️ Não foi possível verificar o pagamento PIX');
+      }
     }
     
     // Limpa o carrinho e fecha o modal
     clearCart();
     closeCheckout();
     
+    // Prepara itens para a URL
+    const items = cart.map(item => `${item.quantidade}x ${item.nome}`).join(', ');
+    
+    // Prepara dados de parcelamento para a URL
+    const installmentParams = installmentData ? 
+      `&installments=${installmentData.installments}` +
+      `&installment_value=${installmentData.installmentValue}` +
+      `&total_with_interest=${installmentData.totalWithInterest}` +
+      `&has_interest=${installmentData.hasInterest}` : '';
+    
     // Redireciona para página de sucesso
-    window.location.href = `/sucesso?payment_id=${paymentId}&total=${total}`;
+    window.location.href = `/sucesso?payment_id=${paymentId}&total=${total}&method=${paymentMethod || 'card'}${installmentParams}&items=${encodeURIComponent(items)}`;
   };
 
   const handleError = (message: string) => {
@@ -140,6 +150,7 @@ export function CheckoutModal() {
           <button
             onClick={closeCheckout}
             className="p-2 hover:bg-gray-100 rounded-lg"
+            disabled={isLoading}
           >
             <X className="w-5 h-5" />
           </button>
@@ -169,7 +180,7 @@ export function CheckoutModal() {
         {isLoading ? (
           <div className="text-center py-8">
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
-            <p className="mt-4 text-gray-600">Preparando pagamento...</p>
+            <p className="mt-4 text-gray-600">Preparando checkout...</p>
           </div>
         ) : clientSecret ? (
           <Elements 
