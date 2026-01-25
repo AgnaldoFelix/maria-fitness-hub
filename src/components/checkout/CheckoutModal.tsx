@@ -22,7 +22,7 @@ export function CheckoutModal() {
     setClientSecret('');
     
     try {
-      const response = await fetch('http://https://mmfitness-backend.onrender.com/create-payment-intent', {
+      const response = await fetch('http://mmfitness-backend.onrender.com/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -75,7 +75,7 @@ export function CheckoutModal() {
     // Para PIX, verifica com EfiPay
     if (paymentMethod === 'pix') {
       try {
-        const verifyResponse = await fetch(`http://https://mmfitness-backend.onrender.com/check-pix-status/${paymentId}`);
+        const verifyResponse = await fetch(`http://mmfitness-backend.onrender.com/check-pix-status/${paymentId}`);
         if (verifyResponse.ok) {
           await verifyResponse.json();
         }

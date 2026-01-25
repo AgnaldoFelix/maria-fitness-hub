@@ -32,7 +32,7 @@ export default function Sucesso() {
       if (method === "pix") {
         // Para PIX, usa check-pix-status
         const response = await fetch(
-          `http://https://mmfitness-backend.onrender.com/check-pix-status/${paymentId}`,
+          `http://mmfitness-backend.onrender.com/check-pix-status/${paymentId}`,
         );
         if (response.ok) {
           const data = await response.json();
@@ -46,7 +46,7 @@ export default function Sucesso() {
       } else {
         // Para cartão, usa verify-payment
         const response = await fetch(
-          `http://https://mmfitness-backend.onrender.com/verify-payment/${paymentId}`,
+          `http://mmfitness-backend.onrender.com/verify-payment/${paymentId}`,
         );
         if (response.ok) {
           const data = await response.json();

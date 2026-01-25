@@ -134,7 +134,7 @@ export function CheckoutForm({ amount, onSuccess, onError, onClose }: CheckoutFo
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://https://mmfitness-backend.onrender.com/create-pix-payment', {
+      const response = await fetch('http://mmfitness-backend.onrender.com/create-pix-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -179,7 +179,7 @@ export function CheckoutForm({ amount, onSuccess, onError, onClose }: CheckoutFo
 
     try {
       // Cria payment intent com parcelamento
-      const response = await fetch('http://https://mmfitness-backend.onrender.com/create-payment-intent', {
+      const response = await fetch('http://mmfitness-backend.onrender.com/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -230,7 +230,7 @@ export function CheckoutForm({ amount, onSuccess, onError, onClose }: CheckoutFo
   // Verificar status do PIX com EfiPay
   const checkPixStatus = async (txid: string) => {
     try {
-      const response = await fetch(`http://https://mmfitness-backend.onrender.com/check-pix-status/${txid}`);
+      const response = await fetch(`http://mmfitness-backend.onrender.com/check-pix-status/${txid}`);
       if (response.ok) {
         const data = await response.json();
         console.log('📊 Status PIX:', data.status);
