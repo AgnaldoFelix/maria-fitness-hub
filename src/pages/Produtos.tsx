@@ -8,6 +8,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useSettings } from "@/hooks/useSettings";
 import { ProductCard } from "@/components/products/ProductCard";
 import { CheckoutModal } from "@/components/checkout/CheckoutModal";
+import { PixModal } from "@/components/checkout/PixModal";
 
 export default function Produtos() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -104,7 +105,7 @@ export default function Produtos() {
             {/* Products Grid */}
             {filteredAndSortedProducts.length > 0 ? (
               <>
-                <div className="overflow-y-auto max-h-[70vh] grid grid-cols-2 gap-3 pb-[30px]">
+                <div className="overflow-y-auto max-h-[70vh] grid grid-cols-2 gap-3 pb-[40px]">
                   {filteredAndSortedProducts.map((product) => (
                     <ProductCard
                       key={product.id}
@@ -125,7 +126,7 @@ export default function Produtos() {
                 </div>
                 
                 {/* Contador de produtos - Centralizado */}
-                <div className="w-full mb-[70px] text-center">
+                <div className=" mb-[75px] text-center">
                   <p className="text-sm text-muted-foreground">
                     {filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? 'produto encontrado' : 'produtos encontrados'}
                   </p>
@@ -150,7 +151,7 @@ export default function Produtos() {
         )}
               {/* Modal de Checkout */}
       <CheckoutModal />
-
+      <PixModal />
       </main>
 
       <BottomNav />

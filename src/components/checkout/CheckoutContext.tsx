@@ -25,7 +25,7 @@ interface CheckoutContextType {
   customerInfo: CustomerInfo;
   paymentMethod: 'stripe' | 'pix' | null;
   isPixModalOpen: boolean;
-  addToCart: (item: Omit<CartItem, 'quantidade'>) => void;
+  addToCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   openCart: () => void;
@@ -39,8 +39,7 @@ interface CheckoutContextType {
   setPaymentMethod: (method: 'stripe' | 'pix' | null) => void;
   openPixModal: () => void;
   closePixModal: () => void;
-  confirmPayment: (paymentMethod: 'stripe' | 'pix') => Promise<void>;
-  goToPayment: () => void;
+  confirmPayment: () => Promise<void>;
 }
 
 const CheckoutContext = createContext<CheckoutContextType | undefined>(undefined);
@@ -61,7 +60,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
   const total = cart.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
 
-  const addToCart = (item: Omit<CartItem, 'quantidade'>) => {
+  const addToCart = (item: CartItem) => {
     setCart(prev => {
       const existingItem = prev.find(i => i.id === item.id);
       if (existingItem) {
@@ -103,88 +102,22 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     setCustomerInfo(info);
   };
 
-  const goToPayment = () => {
+  const confirmPayment = async () => {
+    // Enviar mensagem para WhatsApp
+    const message = `✅ NOVA COMPRA CONFIRMADA ✅\n\n👤 Cliente: ${customerInfo.nome}\n📍 Endereço: ${customerInfo.endereco}\n📞 Telefone: ${customerInfo.telefone || 'Não informado'}\n\n🛒 Itens Comprados:\n${cart.map(item => 
+      `• ${item.nome} (${item.quantidade}x) - R$ ${(item.preco * item.quantidade).toFixed(2)}`
+    ).join('\n')}\n\n💰 Total: R$ ${total.toFixed(2)}\n💳 Método: PIX\n\n🚚 Entregar em: ${customerInfo.endereco}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappNumber = '5579996848609'; // Número da dona do app
+    
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
+    
+    // Limpar carrinho e fechar modais
+    clearCart();
+    closePixModal();
+    closeCheckout();
     closeAddressModal();
-    closeCart();
-    openCheckout();
-  };
-
-const sendWhatsAppNotification = async (paymentMethod: 'stripe' | 'pix') => {
-  try {
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    // Criar mensagem linha por linha para melhor controle
-    const messageLines = [
-      '✅ NOVA COMPRA CONFIRMADA ✅',
-      '',
-      `👤 Cliente: ${customerInfo.nome}`,
-      `📍 Endereço: ${customerInfo.endereco}`,
-      `📞 Telefone: ${customerInfo.telefone || 'Não informado'}`,
-      '',
-      '🛒 Itens Comprados:',
-      ...cart.map(item => 
-        `• ${item.nome} (${item.quantidade}x) - R$ ${(item.preco * item.quantidade).toFixed(2)}`
-      ),
-      '',
-      `💰 Total: R$ ${total.toFixed(2)}`,
-      `💳 Método: ${paymentMethod === 'pix' ? 'PIX' : 'Cartão de Crédito'}`,
-      '',
-      `📋 ID do Pedido: ${orderId}`,
-      `🚚 Entregar em: ${customerInfo.endereco}`,
-      '',
-      '⚠️ Por favor, confirme o recebimento e prepare a entrega!'
-    ];
-
-    const message = messageLines.join('\n');
-    
-    // Testar diferentes métodos de encoding
-    const encodedMessage = encodeURIComponent(message)
-      .replace(/%0A/g, '%0D%0A'); // Garantir quebras de linha CRLF
-    
-    // Número da vendedora
-    const vendorPhone = '5579996848609';
-    
-    // Criar link do WhatsApp (testar sem https também)
-    const whatsappLink = `https://api.whatsapp.com/send?phone=${vendorPhone}&text=${encodedMessage}`;
-    
-    // Abrir WhatsApp em nova aba
-    const newWindow = window.open(whatsappLink, '_blank', 'noopener,noreferrer');
-    if (newWindow) newWindow.opener = null;
-    
-    return whatsappLink;
-  } catch (error) {
-    console.error('Erro ao enviar notificação:', error);
-    
-    // Fallback: criar mensagem simples
-    const simpleMessage = `Nova compra confirmada - Cliente: ${customerInfo.nome} - Total: R$ ${total.toFixed(2)}`;
-    const encodedFallback = encodeURIComponent(simpleMessage);
-    const fallbackLink = `https://wa.me/5579996848609?text=${encodedFallback}`;
-    window.open(fallbackLink, '_blank');
-    
-    return fallbackLink;
-  }
-};
-
-  const confirmPayment = async (paymentMethod: 'stripe' | 'pix') => {
-    try {
-      // Enviar notificação para WhatsApp
-      await sendWhatsAppNotification(paymentMethod);
-      
-      // Limpar carrinho e fechar modais
-      clearCart();
-      if (paymentMethod === 'pix') {
-        closePixModal();
-      }
-      closeCheckout();
-      closeAddressModal();
-      
-      // Redirecionar para página de sucesso
-      window.location.href = `/sucesso?total=${total}&payment_method=${paymentMethod}`;
-      
-    } catch (error) {
-      console.error('Erro ao confirmar pagamento:', error);
-      alert('O pagamento foi confirmado, mas houve um erro ao enviar a notificação.');
-    }
   };
 
   return (
@@ -212,8 +145,7 @@ const sendWhatsAppNotification = async (paymentMethod: 'stripe' | 'pix') => {
         setPaymentMethod,
         openPixModal,
         closePixModal,
-        confirmPayment,
-        goToPayment
+        confirmPayment
       }}
     >
       {children}

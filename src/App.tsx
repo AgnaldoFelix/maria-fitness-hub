@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import SucessoPage from "./pages/Successo";
 import { CheckoutProvider } from "@/contexts/CheckoutContext";
 import { CheckoutModal } from "@/components/checkout/CheckoutModal";
-import { CartDrawer } from "@/components/checkout/CartDrawer";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { AddressModal } from "./components/cart/AddressModal";
 
 
 

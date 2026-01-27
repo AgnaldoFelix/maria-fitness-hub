@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateRecipe, useUpdateRecipe, type Recipe } from "@/hooks/useRecipes";
-import { Loader2, AlertCircle, HelpCircle } from "lucide-react";
+import { Loader2, AlertCircle, HelpCircle, Plus, Trash2, GripVertical } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const categories = ["Café da Manhã", "Lanche", "Doce Fit", "Low Carb", "Proteico", "Almoço", "Jantar"];
@@ -38,8 +38,8 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
 
   const [formData, setFormData] = useState({
     nome: "",
-    ingredientes: "",
-    modo_preparo: "",
+    ingredientes: [] as string[], // Agora é um array
+    modo_preparo: [] as string[], // Agora é um array
     categoria: "Lanche",
     tempo: "30 min",
     foto_url: "",
@@ -51,23 +51,25 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
     modo_preparo: 0,
   });
 
-  // Processar texto para manter quebras de linha
-  const processTextWithLineBreaks = useCallback((text: string) => {
-    return text
-      .replace(/\r\n/g, '\n')  // Normalizar quebras de linha
-      .replace(/\n{3,}/g, '\n\n') // Limitar múltiplas quebras de linha
-      .trim();
-  }, []);
-
+  // Converter string para array ao carregar receita existente
   useEffect(() => {
     if (recipe) {
-      const processedIngredientes = processTextWithLineBreaks(recipe.ingredientes);
-      const processedModoPreparo = processTextWithLineBreaks(recipe.modo_preparo);
+      // Converter ingredientes de string para array
+      const ingredientesArray = recipe.ingredientes
+        .split('\n')
+        .filter(line => line.trim())
+        .map(line => line.replace(/^[•\-]\s*/, '').trim());
+      
+      // Converter modo de preparo de string para array
+      const modoPreparoArray = recipe.modo_preparo
+        .split('\n')
+        .filter(line => line.trim())
+        .map(line => line.replace(/^\d+[\.\)]\s*/, '').trim());
       
       setFormData({
         nome: recipe.nome,
-        ingredientes: processedIngredientes,
-        modo_preparo: processedModoPreparo,
+        ingredientes: ingredientesArray,
+        modo_preparo: modoPreparoArray,
         categoria: recipe.categoria,
         tempo: recipe.tempo,
         foto_url: recipe.foto_url || "",
@@ -75,14 +77,14 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
       });
       
       setCharacterCount({
-        ingredientes: processedIngredientes.length,
-        modo_preparo: processedModoPreparo.length,
+        ingredientes: recipe.ingredientes.length,
+        modo_preparo: recipe.modo_preparo.length,
       });
     } else {
       setFormData({
         nome: "",
-        ingredientes: "",
-        modo_preparo: "",
+        ingredientes: [""], // Começa com um campo vazio
+        modo_preparo: [""], // Começa com um campo vazio
         categoria: "Lanche",
         tempo: "30 min",
         foto_url: "",
@@ -90,16 +92,67 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
       });
       setCharacterCount({ ingredientes: 0, modo_preparo: 0 });
     }
-  }, [recipe, open, processTextWithLineBreaks]);
+  }, [recipe, open]);
 
-  const handleTextareaChange = (field: 'ingredientes' | 'modo_preparo', value: string) => {
-    const processedValue = processTextWithLineBreaks(value);
-    setFormData({ ...formData, [field]: processedValue });
-    setCharacterCount({ ...characterCount, [field]: processedValue.length });
+  // Atualizar contagem de caracteres
+  useEffect(() => {
+    const ingredientesText = formData.ingredientes.join('\n');
+    const modoPreparoText = formData.modo_preparo.join('\n');
+    
+    setCharacterCount({
+      ingredientes: ingredientesText.length,
+      modo_preparo: modoPreparoText.length,
+    });
+  }, [formData.ingredientes, formData.modo_preparo]);
+
+  // Adicionar novo ingrediente
+  const addIngrediente = () => {
+    setFormData({
+      ...formData,
+      ingredientes: [...formData.ingredientes, ""]
+    });
+  };
+
+  // Remover ingrediente
+  const removeIngrediente = (index: number) => {
+    const newIngredientes = formData.ingredientes.filter((_, i) => i !== index);
+    setFormData({ ...formData, ingredientes: newIngredientes });
+  };
+
+  // Atualizar ingrediente
+  const updateIngrediente = (index: number, value: string) => {
+    const newIngredientes = [...formData.ingredientes];
+    newIngredientes[index] = value;
+    setFormData({ ...formData, ingredientes: newIngredientes });
+  };
+
+  // Adicionar novo passo
+  const addPasso = () => {
+    setFormData({
+      ...formData,
+      modo_preparo: [...formData.modo_preparo, ""]
+    });
+  };
+
+  // Remover passo
+  const removePasso = (index: number) => {
+    const newModoPreparo = formData.modo_preparo.filter((_, i) => i !== index);
+    setFormData({ ...formData, modo_preparo: newModoPreparo });
+  };
+
+  // Atualizar passo
+  const updatePasso = (index: number, value: string) => {
+    const newModoPreparo = [...formData.modo_preparo];
+    newModoPreparo[index] = value;
+    setFormData({ ...formData, modo_preparo: newModoPreparo });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Filtrar ingredientes e passos vazios
+    const ingredientesFiltrados = formData.ingredientes.filter(item => item.trim());
+    const modoPreparoFiltrados = formData.modo_preparo.filter(item => item.trim());
 
     // Validações
     if (!formData.nome.trim()) {
@@ -111,36 +164,43 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
       return;
     }
 
-    if (!formData.ingredientes.trim()) {
+    if (ingredientesFiltrados.length === 0) {
       toast({ 
         title: "Ingredientes obrigatórios", 
-        description: "Digite os ingredientes da receita",
+        description: "Digite pelo menos um ingrediente",
         variant: "destructive" 
       });
       return;
     }
 
-    if (!formData.modo_preparo.trim()) {
+    if (modoPreparoFiltrados.length === 0) {
       toast({ 
         title: "Modo de preparo obrigatório", 
-        description: "Digite o modo de preparo da receita",
+        description: "Digite pelo menos um passo",
         variant: "destructive" 
       });
       return;
     }
 
     try {
+      // Converter arrays para string para salvar no banco
+      const recipeToSave = {
+        ...formData,
+        ingredientes: ingredientesFiltrados.map(item => `• ${item.trim()}`).join('\n'),
+        modo_preparo: modoPreparoFiltrados.map((item, index) => `${index + 1}. ${item.trim()}`).join('\n'),
+      };
+
       if (recipe) {
         await updateMutation.mutateAsync({
           id: recipe.id,
-          ...formData,
+          ...recipeToSave,
         });
         toast({ 
           title: "Receita atualizada! ✅",
           description: "Sua receita foi atualizada com sucesso."
         });
       } else {
-        await createMutation.mutateAsync(formData);
+        await createMutation.mutateAsync(recipeToSave);
         toast({ 
           title: "Receita criada! 🎉",
           description: "Sua receita foi criada com sucesso."
@@ -157,10 +217,6 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
-
-  const formatExampleText = (title: string, example: string) => {
-    return `Exemplo:\n${example.split('\n').map(line => `• ${line}`).join('\n')}`;
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -237,7 +293,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
                   <div className="absolute left-6 top-0 w-64 p-2 bg-popover text-popover-foreground text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                    Digite cada ingrediente em uma nova linha
+                    Adicione cada ingrediente separadamente. Comece com quantidades, ex: "2 ovos"
                   </div>
                 </div>
               </div>
@@ -245,18 +301,47 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
                 {characterCount.ingredientes}/1000
               </span>
             </div>
-            <Textarea
-              id="ingredientes"
-              value={formData.ingredientes}
-              onChange={(e) => handleTextareaChange('ingredientes', e.target.value)}
-              placeholder={formatExampleText("Ingredientes", "2 ovos\n1 banana madura\n2 colheres de sopa de aveia\n1 colher de chá de canela")}
-              rows={5}
-              className="min-h-[120px] text-sm leading-relaxed resize-y"
-              maxLength={1000}
-              required
-            />
+            
+            <div className="space-y-3">
+              {formData.ingredientes.map((ingrediente, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="flex-shrink-0 text-muted-foreground">
+                    <GripVertical className="w-4 h-4" />
+                  </div>
+                  <Input
+                    value={ingrediente}
+                    onChange={(e) => updateIngrediente(index, e.target.value)}
+                    placeholder={`Ingrediente ${index + 1} (ex: 2 ovos)`}
+                    className="flex-1 h-11"
+                    maxLength={200}
+                  />
+                  {formData.ingredientes.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeIngrediente(index)}
+                      className="h-11 w-11 text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addIngrediente}
+                className="w-full h-11 gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Adicionar Ingrediente
+              </Button>
+            </div>
+            
             <p className="text-xs text-muted-foreground">
-              Pressione Enter para cada novo ingrediente
+              Cada ingrediente será automaticamente formatado com um bullet (•)
             </p>
           </div>
 
@@ -269,7 +354,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
                   <div className="absolute left-6 top-0 w-64 p-2 bg-popover text-popover-foreground text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                    Digite cada passo em uma nova linha. Use frases curtas e claras.
+                    Descreva cada passo do preparo. Cada linha será um passo numerado.
                   </div>
                 </div>
               </div>
@@ -277,18 +362,51 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
                 {characterCount.modo_preparo}/1500
               </span>
             </div>
-            <Textarea
-              id="modo_preparo"
-              value={formData.modo_preparo}
-              onChange={(e) => handleTextareaChange('modo_preparo', e.target.value)}
-              placeholder={formatExampleText("Modo de Preparo", "Amasse a banana em uma tigela\nMisture com os ovos batidos\nAdicione a aveia e a canela\nCozinhe em frigideira antiaderente")}
-              rows={5}
-              className="min-h-[120px] text-sm leading-relaxed resize-y whitespace-pre-wrap"
-              maxLength={1500}
-              required
-            />
+            
+            <div className="space-y-3">
+              {formData.modo_preparo.map((passo, index) => (
+                <div key={index} className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      Passo {index + 1}
+                    </Label>
+                    {formData.modo_preparo.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removePasso(index)}
+                        className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Remover
+                      </Button>
+                    )}
+                  </div>
+                  <Textarea
+                    value={passo}
+                    onChange={(e) => updatePasso(index, e.target.value)}
+                    placeholder={`Descreva o passo ${index + 1} (ex: Bata os ovos em uma tigela)`}
+                    rows={2}
+                    className="min-h-[60px] text-sm resize-y"
+                    maxLength={300}
+                  />
+                </div>
+              ))}
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addPasso}
+                className="w-full h-11 gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Adicionar Passo
+              </Button>
+            </div>
+            
             <p className="text-xs text-muted-foreground">
-              Cada linha será um passo. Evite textos muito longos em uma única linha.
+              Cada passo será automaticamente numerado (1., 2., 3., ...)
             </p>
           </div>
 
