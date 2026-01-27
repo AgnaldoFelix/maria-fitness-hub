@@ -24,7 +24,7 @@ export const ALLOWED_IPS = [
   '192.168.1.101', // Exemplo: IP de outro celular autorizado
   '10.0.0.50',     // Exemplo para rede 10.x.x.x
   '162.120.186.80',
-//   '189.96.25.228',
+  '189.96.25.228',
   '177.37.183.200',
   // Adicione quantos IPs necessários
 ];
