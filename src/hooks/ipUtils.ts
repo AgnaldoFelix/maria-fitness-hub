@@ -25,7 +25,8 @@ export const ALLOWED_IPS = [
   '10.0.0.50',     // Exemplo para rede 10.x.x.x
   '162.120.186.80',
   '189.96.25.228',
-  '177.37.183.200',
+  '177.37.183.157',
+  '189.0.144.28',
   // Adicione quantos IPs necessários
 ];
 
