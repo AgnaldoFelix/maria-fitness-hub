@@ -1,7 +1,7 @@
 import { UtensilsCrossed, ShoppingBag, Settings, ExternalLink } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useIPAuth } from "@/hooks/ipUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NavItem {
   label: string;
@@ -29,8 +29,18 @@ interface BottomNavProps {
 
 export function BottomNav({ position = 'fixed', className }: BottomNavProps) {
   const location = useLocation();
-  const { isAllowed, loading } = useIPAuth();
+  const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
+
   const currentYear = new Date().getFullYear();
+
+  const handleAdminClick = () => {
+    if (isAuthenticated) {
+      navigate('/admin');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <nav className={cn(
@@ -40,7 +50,7 @@ export function BottomNav({ position = 'fixed', className }: BottomNavProps) {
       position === 'sticky' && "sticky",
       className
     )}>
-      <div className="max-w-lg mx-auto ">
+      <div className="max-w-lg mx-auto">
         {/* Navegação */}
         <div className="flex items-center justify-around h-16 px-4">
           {navItems.map((item) => {
@@ -62,29 +72,22 @@ export function BottomNav({ position = 'fixed', className }: BottomNavProps) {
             );
           })}
           
-          {/* Só mostra Admin se o IP estiver autorizado */}
-          {!loading && isAllowed && (
-            <Link
-              to="/admin"
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 px-4 py-2 transition-colors",
-                location.pathname.startsWith("/admin")
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Settings className="w-5 h-5" />
-              <span className="text-xs font-medium">Admin</span>
-            </Link>
-          )}
-          
-          {/* Opção: Mostrar um botão desativado ou mensagem para IPs não autorizados */}
-          {!loading && !isAllowed && (
-            <div className="flex flex-col items-center justify-center gap-1 px-4 py-2 opacity-50 cursor-not-allowed">
-              <Settings className="w-5 h-5" />
-              <span className="text-xs font-medium">Admin</span>
-            </div>
-          )}
+          {/* Botão Admin - Redireciona para login se não autenticado */}
+          <button
+            onClick={handleAdminClick}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 px-4 py-2 transition-colors",
+              (location.pathname === '/admin' || location.pathname === '/login')
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            disabled={loading}
+          >
+            <Settings className="w-5 h-5" />
+            <span className="text-xs font-medium">
+              {loading ? "..." : "Admin"}
+            </span>
+          </button>
         </div>
 
         {/* Footer */}
