@@ -234,12 +234,10 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
           <h2 className="text-lg font-semibold truncate">{recipe.nome}</h2>
         </ModalHeader>
 
-        <ScrollShadow 
-        hideScrollBar 
-        className="w-full h-full max-h-[55vh]">
+        <ScrollShadow hideScrollBar className="w-full h-full max-h-[55vh]">
           <ModalBody className="gap-6 pb-6 bg-background">
             {/* Imagem da receita */}
-            {recipe.foto_url && (
+            {recipe.foto_url ? (
               <div className="w-full rounded-lg overflow-hidden bg-default-100 aspect-video flex items-center justify-center">
                 {!imageLoaded && !imageError && (
                   <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -265,6 +263,12 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
                     }}
                   />
                 )}
+              </div>
+            ) : (
+              <div className="w-full h-64 rounded-lg bg-gradient-to-br from-primary/10 to-muted flex items-center justify-center">
+                <span className="text-6xl">
+                  {getCategoryEmoji(recipe.categoria)}
+                </span>
               </div>
             )}
 

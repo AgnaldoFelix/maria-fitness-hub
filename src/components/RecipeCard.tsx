@@ -1,8 +1,9 @@
-// components/RecipeCard.tsx (versão ajustada)
+// components/RecipeCard.tsx (versão atualizada)
 import { Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface RecipeCardProps {
   id: string;
@@ -22,6 +23,8 @@ export function RecipeCard({
   onClick,
   className,
 }: RecipeCardProps) {
+  const [imageError, setImageError] = useState(false);
+  
   const emojiMap: Record<string, string> = {
     "Café da Manhã": "☀️",
     "Lanche": "🥪",
@@ -37,19 +40,20 @@ export function RecipeCard({
       className={cn(
         "overflow-hidden cursor-pointer transition-all duration-200",
         "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
-        "flex flex-col h-full", // Flexbox para preencher altura
+        "flex flex-col h-full",
         className
       )}
       onClick={onClick}
     >
-      {/* Imagem com aspect-ratio quadrado */}
+      {/* Imagem com fallback */}
       <div className="relative pt-[75%] bg-muted overflow-hidden">
-        {foto_url ? (
+        {foto_url && !imageError ? (
           <img
             src={foto_url}
             alt={nome}
             className="absolute inset-0 w-full h-full object-cover"
             loading="lazy"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-muted">

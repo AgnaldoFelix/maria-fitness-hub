@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,11 +19,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useCreateRecipe, useUpdateRecipe, type Recipe } from "@/hooks/useRecipes";
-import { Loader2, AlertCircle, HelpCircle, Plus, Trash2, GripVertical } from "lucide-react";
+import {
+  useCreateRecipe,
+  useUpdateRecipe,
+  type Recipe,
+} from "@/hooks/useRecipes";
+import { useUploadImage } from "@/hooks/useUploadImage";
+import {
+  Loader2,
+  AlertCircle,
+  HelpCircle,
+  Plus,
+  Trash2,
+  GripVertical,
+  Camera,
+  X,
+  Image as ImageIcon,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const categories = ["Café da Manhã", "Lanche", "Doce Fit", "Low Carb", "Proteico", "Almoço", "Jantar"];
+const categories = [
+  "Café da Manhã",
+  "Lanche",
+  "Doce Fit",
+  "Low Carb",
+  "Proteico",
+  "Almoço",
+  "Jantar",
+];
 
 interface RecipeFormDialogProps {
   open: boolean;
@@ -31,15 +54,21 @@ interface RecipeFormDialogProps {
   recipe: Recipe | null;
 }
 
-export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialogProps) {
+export function RecipeFormDialog({
+  open,
+  onOpenChange,
+  recipe,
+}: RecipeFormDialogProps) {
   const { toast } = useToast();
   const createMutation = useCreateRecipe();
   const updateMutation = useUpdateRecipe();
+  const uploadImage = useUploadImage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     nome: "",
-    ingredientes: [] as string[], // Agora é um array
-    modo_preparo: [] as string[], // Agora é um array
+    ingredientes: [] as string[],
+    modo_preparo: [] as string[],
     categoria: "Lanche",
     tempo: "30 min",
     foto_url: "",
@@ -51,21 +80,25 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
     modo_preparo: 0,
   });
 
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+
   // Converter string para array ao carregar receita existente
   useEffect(() => {
     if (recipe) {
       // Converter ingredientes de string para array
       const ingredientesArray = recipe.ingredientes
-        .split('\n')
-        .filter(line => line.trim())
-        .map(line => line.replace(/^[•\-]\s*/, '').trim());
-      
+        .split("\n")
+        .filter((line) => line.trim())
+        .map((line) => line.replace(/^[•\-]\s*/, "").trim());
+
       // Converter modo de preparo de string para array
       const modoPreparoArray = recipe.modo_preparo
-        .split('\n')
-        .filter(line => line.trim())
-        .map(line => line.replace(/^\d+[\.\)]\s*/, '').trim());
-      
+        .split("\n")
+        .filter((line) => line.trim())
+        .map((line) => line.replace(/^\d+[\.\)]\s*/, "").trim());
+
       setFormData({
         nome: recipe.nome,
         ingredientes: ingredientesArray,
@@ -75,7 +108,9 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
         foto_url: recipe.foto_url || "",
         publicada: recipe.publicada,
       });
-      
+
+      setImagePreview(recipe.foto_url || "");
+      setSelectedImage(null);
       setCharacterCount({
         ingredientes: recipe.ingredientes.length,
         modo_preparo: recipe.modo_preparo.length,
@@ -83,33 +118,116 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
     } else {
       setFormData({
         nome: "",
-        ingredientes: [""], // Começa com um campo vazio
-        modo_preparo: [""], // Começa com um campo vazio
+        ingredientes: [""],
+        modo_preparo: [""],
         categoria: "Lanche",
         tempo: "30 min",
         foto_url: "",
         publicada: false,
       });
+      setImagePreview("");
+      setSelectedImage(null);
       setCharacterCount({ ingredientes: 0, modo_preparo: 0 });
     }
   }, [recipe, open]);
 
   // Atualizar contagem de caracteres
   useEffect(() => {
-    const ingredientesText = formData.ingredientes.join('\n');
-    const modoPreparoText = formData.modo_preparo.join('\n');
-    
+    const ingredientesText = formData.ingredientes.join("\n");
+    const modoPreparoText = formData.modo_preparo.join("\n");
+
     setCharacterCount({
       ingredientes: ingredientesText.length,
       modo_preparo: modoPreparoText.length,
     });
   }, [formData.ingredientes, formData.modo_preparo]);
 
+  // Funções de upload de imagem
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    const validTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+    ];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Tipo de arquivo inválido",
+        description: "Use JPEG, PNG, WebP ou GIF.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar tamanho (máximo 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "A imagem deve ter no máximo 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedImage(file);
+
+    // Criar preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUploadImage = async () => {
+    if (!selectedImage) {
+      toast({
+        title: "Nenhuma imagem selecionada",
+        description: "Selecione uma imagem primeiro.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const imageUrl = await uploadImage.mutateAsync(selectedImage);
+      setFormData({ ...formData, foto_url: imageUrl });
+      toast({
+        title: "Imagem enviada!",
+        description: "Agora você pode salvar a receita.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar imagem",
+        description: error.message || "Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview("");
+    setFormData({ ...formData, foto_url: "" });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   // Adicionar novo ingrediente
   const addIngrediente = () => {
     setFormData({
       ...formData,
-      ingredientes: [...formData.ingredientes, ""]
+      ingredientes: [...formData.ingredientes, ""],
     });
   };
 
@@ -130,7 +248,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
   const addPasso = () => {
     setFormData({
       ...formData,
-      modo_preparo: [...formData.modo_preparo, ""]
+      modo_preparo: [...formData.modo_preparo, ""],
     });
   };
 
@@ -151,43 +269,67 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
     e.preventDefault();
 
     // Filtrar ingredientes e passos vazios
-    const ingredientesFiltrados = formData.ingredientes.filter(item => item.trim());
-    const modoPreparoFiltrados = formData.modo_preparo.filter(item => item.trim());
+    const ingredientesFiltrados = formData.ingredientes.filter((item) =>
+      item.trim(),
+    );
+    const modoPreparoFiltrados = formData.modo_preparo.filter((item) =>
+      item.trim(),
+    );
 
     // Validações
     if (!formData.nome.trim()) {
-      toast({ 
-        title: "Nome obrigatório", 
+      toast({
+        title: "Nome obrigatório",
         description: "Digite o nome da receita",
-        variant: "destructive" 
+        variant: "destructive",
       });
       return;
     }
 
     if (ingredientesFiltrados.length === 0) {
-      toast({ 
-        title: "Ingredientes obrigatórios", 
+      toast({
+        title: "Ingredientes obrigatórios",
         description: "Digite pelo menos um ingrediente",
-        variant: "destructive" 
+        variant: "destructive",
       });
       return;
     }
 
     if (modoPreparoFiltrados.length === 0) {
-      toast({ 
-        title: "Modo de preparo obrigatório", 
+      toast({
+        title: "Modo de preparo obrigatório",
         description: "Digite pelo menos um passo",
-        variant: "destructive" 
+        variant: "destructive",
       });
       return;
+    }
+
+    // Se tem imagem selecionada mas não foi enviada, enviar primeiro
+    if (selectedImage && !formData.foto_url) {
+      try {
+        await handleUploadImage();
+        // Aguardar um pouco para o estado atualizar
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (error) {
+        toast({
+          title: "Erro ao enviar imagem",
+          description: "Não foi possível salvar a receita.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     try {
       // Converter arrays para string para salvar no banco
       const recipeToSave = {
         ...formData,
-        ingredientes: ingredientesFiltrados.map(item => `• ${item.trim()}`).join('\n'),
-        modo_preparo: modoPreparoFiltrados.map((item, index) => `${index + 1}. ${item.trim()}`).join('\n'),
+        ingredientes: ingredientesFiltrados
+          .map((item) => `• ${item.trim()}`)
+          .join("\n"),
+        modo_preparo: modoPreparoFiltrados
+          .map((item, index) => `${index + 1}. ${item.trim()}`)
+          .join("\n"),
       };
 
       if (recipe) {
@@ -195,28 +337,29 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
           id: recipe.id,
           ...recipeToSave,
         });
-        toast({ 
-          title: "Receita atualizada! ✅",
-          description: "Sua receita foi atualizada com sucesso."
+        toast({
+          title: "✅ Receita atualizada!",
+          description: "Sua receita foi atualizada com sucesso.",
         });
       } else {
         await createMutation.mutateAsync(recipeToSave);
-        toast({ 
-          title: "Receita criada! 🎉",
-          description: "Sua receita foi criada com sucesso."
+        toast({
+          title: "🎉 Receita criada!",
+          description: "Sua receita foi criada com sucesso.",
         });
       }
       onOpenChange(false);
     } catch (error) {
-      toast({ 
-        title: "Erro ao salvar", 
+      toast({
+        title: "❌ Erro ao salvar",
         description: "Não foi possível salvar a receita. Tente novamente.",
-        variant: "destructive" 
+        variant: "destructive",
       });
     }
   };
 
-  const isLoading = createMutation.isPending || updateMutation.isPending;
+  const isLoading =
+    createMutation.isPending || updateMutation.isPending || uploadingImage;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -227,22 +370,120 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
               {recipe ? "✏️ Editar Receita" : "➕ Nova Receita"}
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              {recipe ? "Atualize os detalhes da sua receita" : "Preencha os detalhes da nova receita"}
+              {recipe
+                ? "Atualize os detalhes da sua receita"
+                : "Preencha os detalhes da nova receita"}
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 px-6 pb-6">
+          {/* Upload de Imagem */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">
+              Foto da Receita (opcional)
+            </Label>
+
+            {/* Preview da Imagem */}
+            <div className="relative w-full h-48 rounded-lg border-2 border-dashed border-border overflow-hidden bg-muted">
+              {imagePreview ? (
+                <>
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                  <ImageIcon className="w-12 h-12 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground text-center">
+                    Nenhuma imagem selecionada
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Botões de Upload */}
+            <div className="flex flex-col gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                >
+                  <Camera className="w-4 h-4" />
+                  Escolher Imagem
+                </Button>
+
+                {selectedImage && !formData.foto_url && (
+                  <Button
+                    type="button"
+                    variant="default"
+                    className="flex-1 gap-2"
+                    onClick={handleUploadImage}
+                    disabled={uploadingImage}
+                  >
+                    {uploadingImage ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="w-4 h-4" />
+                        Enviar Imagem
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+
+              {formData.foto_url && (
+                <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                  ✅ Imagem já enviada: {formData.foto_url.substring(0, 50)}...
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              📸 Tire uma foto da receita pronta ou escolha da galeria • Tipos:
+              JPG, PNG, WebP, GIF • Máx: 5MB
+            </p>
+          </div>
+
           {/* Nome da Receita */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Label htmlFor="nome" className="text-sm font-medium">Nome da Receita</Label>
+              <Label htmlFor="nome" className="text-sm font-medium">
+                Nome da Receita
+              </Label>
               <span className="text-destructive">*</span>
             </div>
             <Input
               id="nome"
               value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, nome: e.target.value })
+              }
               placeholder="Ex: Panqueca Proteica de Banana"
               className="h-11 text-base"
               maxLength={100}
@@ -253,10 +494,14 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
           {/* Categoria e Tempo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="categoria" className="text-sm font-medium">Categoria</Label>
+              <Label htmlFor="categoria" className="text-sm font-medium">
+                Categoria
+              </Label>
               <Select
                 value={formData.categoria}
-                onValueChange={(value) => setFormData({ ...formData, categoria: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, categoria: value })
+                }
               >
                 <SelectTrigger className="h-11">
                   <SelectValue />
@@ -272,11 +517,15 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tempo" className="text-sm font-medium">Tempo de Preparo</Label>
+              <Label htmlFor="tempo" className="text-sm font-medium">
+                Tempo de Preparo
+              </Label>
               <Input
                 id="tempo"
                 value={formData.tempo}
-                onChange={(e) => setFormData({ ...formData, tempo: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, tempo: e.target.value })
+                }
                 placeholder="Ex: 30 minutos"
                 className="h-11 text-base"
                 required
@@ -288,20 +537,25 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label htmlFor="ingredientes" className="text-sm font-medium">Ingredientes</Label>
+                <Label htmlFor="ingredientes" className="text-sm font-medium">
+                  Ingredientes
+                </Label>
                 <span className="text-destructive">*</span>
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
                   <div className="absolute left-6 top-0 w-64 p-2 bg-popover text-popover-foreground text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                    Adicione cada ingrediente separadamente. Comece com quantidades, ex: "2 ovos"
+                    Adicione cada ingrediente separadamente. Comece com
+                    quantidades, ex: "2 ovos"
                   </div>
                 </div>
               </div>
-              <span className={`text-xs ${characterCount.ingredientes > 500 ? 'text-destructive' : 'text-muted-foreground'}`}>
+              <span
+                className={`text-xs ${characterCount.ingredientes > 500 ? "text-destructive" : "text-muted-foreground"}`}
+              >
                 {characterCount.ingredientes}/1000
               </span>
             </div>
-            
+
             <div className="space-y-3">
               {formData.ingredientes.map((ingrediente, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -328,18 +582,19 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
                   )}
                 </div>
               ))}
-              
+
               <Button
                 type="button"
                 variant="outline"
                 onClick={addIngrediente}
                 className="w-full h-11 gap-2"
+                disabled={isLoading}
               >
                 <Plus className="w-4 h-4" />
                 Adicionar Ingrediente
               </Button>
             </div>
-            
+
             <p className="text-xs text-muted-foreground">
               Cada ingrediente será automaticamente formatado com um bullet (•)
             </p>
@@ -349,20 +604,25 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label htmlFor="modo_preparo" className="text-sm font-medium">Modo de Preparo</Label>
+                <Label htmlFor="modo_preparo" className="text-sm font-medium">
+                  Modo de Preparo
+                </Label>
                 <span className="text-destructive">*</span>
                 <div className="relative group">
                   <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
                   <div className="absolute left-6 top-0 w-64 p-2 bg-popover text-popover-foreground text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                    Descreva cada passo do preparo. Cada linha será um passo numerado.
+                    Descreva cada passo do preparo. Cada linha será um passo
+                    numerado.
                   </div>
                 </div>
               </div>
-              <span className={`text-xs ${characterCount.modo_preparo > 800 ? 'text-destructive' : 'text-muted-foreground'}`}>
+              <span
+                className={`text-xs ${characterCount.modo_preparo > 800 ? "text-destructive" : "text-muted-foreground"}`}
+              >
                 {characterCount.modo_preparo}/1500
               </span>
             </div>
-            
+
             <div className="space-y-3">
               {formData.modo_preparo.map((passo, index) => (
                 <div key={index} className="space-y-1">
@@ -377,6 +637,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
                         size="sm"
                         onClick={() => removePasso(index)}
                         className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10"
+                        disabled={isLoading}
                       >
                         <Trash2 className="w-3 h-3 mr-1" />
                         Remover
@@ -390,76 +651,61 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
                     rows={2}
                     className="min-h-[60px] text-sm resize-y"
                     maxLength={300}
+                    disabled={isLoading}
                   />
                 </div>
               ))}
-              
+
               <Button
                 type="button"
                 variant="outline"
                 onClick={addPasso}
                 className="w-full h-11 gap-2"
+                disabled={isLoading}
               >
                 <Plus className="w-4 h-4" />
                 Adicionar Passo
               </Button>
             </div>
-            
+
             <p className="text-xs text-muted-foreground">
               Cada passo será automaticamente numerado (1., 2., 3., ...)
-            </p>
-          </div>
-
-          {/* URL da Foto */}
-          <div className="space-y-2">
-            <Label htmlFor="foto_url" className="text-sm font-medium">URL da Foto (opcional)</Label>
-            <div className="relative">
-              <Input
-                id="foto_url"
-                value={formData.foto_url}
-                onChange={(e) => setFormData({ ...formData, foto_url: e.target.value })}
-                placeholder="https://exemplo.com/foto-da-panqueca.jpg"
-                className="h-11 text-base pr-10"
-                type="url"
-              />
-              {formData.foto_url && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  </div>
-                </div>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Dica: Use links de imagens com boa qualidade (recomendado: 600x400px)
             </p>
           </div>
 
           {/* Status de Publicação */}
           <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
             <div className="space-y-0.5">
-              <Label htmlFor="publicada" className="text-sm font-medium">Publicar receita</Label>
+              <Label htmlFor="publicada" className="text-sm font-medium">
+                Publicar receita
+              </Label>
               <p className="text-xs text-muted-foreground">
-                {formData.publicada 
-                  ? "A receita estará visível para todos os usuários" 
+                {formData.publicada
+                  ? "A receita estará visível para todos os usuários"
                   : "A receita ficará oculta até ser publicada"}
               </p>
             </div>
             <Switch
               id="publicada"
               checked={formData.publicada}
-              onCheckedChange={(checked) => setFormData({ ...formData, publicada: checked })}
+              onCheckedChange={(checked) =>
+                setFormData({ ...formData, publicada: checked })
+              }
               className="data-[state=checked]:bg-success"
+              disabled={isLoading}
             />
           </div>
 
           {/* Validações */}
-          {(characterCount.ingredientes > 500 || characterCount.modo_preparo > 800) && (
+          {(characterCount.ingredientes > 500 ||
+            characterCount.modo_preparo > 800) && (
             <Alert variant="warning" className="bg-yellow-50 border-yellow-200">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="text-yellow-700 text-sm">
-                {characterCount.ingredientes > 500 && "Os ingredientes estão muito longos. Tente simplificar.\n"}
-                {characterCount.modo_preparo > 800 && "O modo de preparo está muito longo. Divida em passos mais curtos."}
+                {characterCount.ingredientes > 500 &&
+                  "Os ingredientes estão muito longos. Tente simplificar.\n"}
+                {characterCount.modo_preparo > 800 &&
+                  "O modo de preparo está muito longo. Divida em passos mais curtos."}
               </AlertDescription>
             </Alert>
           )}
@@ -475,8 +721,8 @@ export function RecipeFormDialog({ open, onOpenChange, recipe }: RecipeFormDialo
             >
               Cancelar
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="flex-1 h-11 text-base gap-2"
               disabled={isLoading}
             >

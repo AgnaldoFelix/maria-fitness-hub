@@ -1,9 +1,8 @@
 import * as React from "react";
-
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
-const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_LIMIT = 5; // Aumentei para 5 para melhor UX
+const TOAST_REMOVE_DELAY = 5000; // Reduzi para 5 segundos
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -35,7 +34,7 @@ type Action =
     }
   | {
       type: ActionType["UPDATE_TOAST"];
-      toast: Partial<ToasterToast>;
+      toast: Partial<ToasterToast> & { id: string };
     }
   | {
       type: ActionType["DISMISS_TOAST"];
@@ -79,14 +78,14 @@ export const reducer = (state: State, action: Action): State => {
     case "UPDATE_TOAST":
       return {
         ...state,
-        toasts: state.toasts.map((t) => (t.id === action.toast.id ? { ...t, ...action.toast } : t)),
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        ),
       };
 
     case "DISMISS_TOAST": {
       const { toastId } = action;
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {
@@ -103,7 +102,7 @@ export const reducer = (state: State, action: Action): State => {
                 ...t,
                 open: false,
               }
-            : t,
+            : t
         ),
       };
     }
@@ -134,6 +133,7 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">;
 
+// Função principal toast
 function toast({ ...props }: Toast) {
   const id = genId();
 
@@ -163,6 +163,19 @@ function toast({ ...props }: Toast) {
   };
 }
 
+// Métodos auxiliares para tipos comuns
+toast.success = (props: Omit<Toast, "variant">) =>
+  toast({ ...props, variant: "default" });
+
+toast.error = (props: Omit<Toast, "variant">) =>
+  toast({ ...props, variant: "destructive" });
+
+toast.warning = (props: Omit<Toast, "variant">) =>
+  toast({ ...props, variant: "default" });
+
+toast.info = (props: Omit<Toast, "variant">) =>
+  toast({ ...props, variant: "default" });
+
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState);
 
@@ -174,7 +187,7 @@ function useToast() {
         listeners.splice(index, 1);
       }
     };
-  }, [state]);
+  }, []);
 
   return {
     ...state,
