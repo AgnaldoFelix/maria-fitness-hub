@@ -32,9 +32,10 @@ import {
   Plus,
   Trash2,
   GripVertical,
-  Camera,
+  FolderOpen,
   X,
   Image as ImageIcon,
+  Check,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -87,13 +88,11 @@ export function RecipeFormDialog({
   // Converter string para array ao carregar receita existente
   useEffect(() => {
     if (recipe) {
-      // Converter ingredientes de string para array
       const ingredientesArray = recipe.ingredientes
         .split("\n")
         .filter((line) => line.trim())
         .map((line) => line.replace(/^[•\-]\s*/, "").trim());
 
-      // Converter modo de preparo de string para array
       const modoPreparoArray = recipe.modo_preparo
         .split("\n")
         .filter((line) => line.trim())
@@ -111,10 +110,6 @@ export function RecipeFormDialog({
 
       setImagePreview(recipe.foto_url || "");
       setSelectedImage(null);
-      setCharacterCount({
-        ingredientes: recipe.ingredientes.length,
-        modo_preparo: recipe.modo_preparo.length,
-      });
     } else {
       setFormData({
         nome: "",
@@ -127,7 +122,6 @@ export function RecipeFormDialog({
       });
       setImagePreview("");
       setSelectedImage(null);
-      setCharacterCount({ ingredientes: 0, modo_preparo: 0 });
     }
   }, [recipe, open]);
 
@@ -176,6 +170,7 @@ export function RecipeFormDialog({
     }
 
     setSelectedImage(file);
+    setFormData(prev => ({ ...prev, foto_url: "" })); // Reset URL ao selecionar nova imagem
 
     // Criar preview
     const reader = new FileReader();
@@ -185,30 +180,31 @@ export function RecipeFormDialog({
     reader.readAsDataURL(file);
   };
 
-  const handleUploadImage = async () => {
+  const handleUploadImage = async (): Promise<string> => {
     if (!selectedImage) {
-      toast({
-        title: "Nenhuma imagem selecionada",
-        description: "Selecione uma imagem primeiro.",
-        variant: "destructive",
-      });
-      return;
+      throw new Error("Nenhuma imagem selecionada");
     }
 
     setUploadingImage(true);
     try {
       const imageUrl = await uploadImage.mutateAsync(selectedImage);
-      setFormData({ ...formData, foto_url: imageUrl });
+      
+      // Atualizar formData com a URL da imagem
+      setFormData(prev => ({ ...prev, foto_url: imageUrl }));
+      
       toast({
-        title: "Imagem enviada!",
-        description: "Agora você pode salvar a receita.",
+        title: "✅ Imagem enviada!",
+        description: "Imagem enviada com sucesso.",
       });
+      
+      return imageUrl;
     } catch (error: any) {
       toast({
-        title: "Erro ao enviar imagem",
-        description: error.message || "Tente novamente.",
+        title: "❌ Erro ao enviar imagem",
+        description: error.message || "Erro ao enviar imagem",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setUploadingImage(false);
     }
@@ -217,7 +213,7 @@ export function RecipeFormDialog({
   const handleRemoveImage = () => {
     setSelectedImage(null);
     setImagePreview("");
-    setFormData({ ...formData, foto_url: "" });
+    setFormData(prev => ({ ...prev, foto_url: "" }));
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -270,10 +266,10 @@ export function RecipeFormDialog({
 
     // Filtrar ingredientes e passos vazios
     const ingredientesFiltrados = formData.ingredientes.filter((item) =>
-      item.trim(),
+      item.trim()
     );
     const modoPreparoFiltrados = formData.modo_preparo.filter((item) =>
-      item.trim(),
+      item.trim()
     );
 
     // Validações
@@ -304,26 +300,30 @@ export function RecipeFormDialog({
       return;
     }
 
-    // Se tem imagem selecionada mas não foi enviada, enviar primeiro
-    if (selectedImage && !formData.foto_url) {
+    // 🔴 PARTE CRÍTICA: Upload da imagem PRIMEIRO
+    let fotoUrl = formData.foto_url;
+    
+    if (selectedImage) {
       try {
-        await handleUploadImage();
-        // Aguardar um pouco para o estado atualizar
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Se já tem imagem selecionada, fazer upload e obter URL
+        fotoUrl = await handleUploadImage();
+        
+        // Aguardar estado atualizar
+        await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
-        toast({
-          title: "Erro ao enviar imagem",
-          description: "Não foi possível salvar a receita.",
-          variant: "destructive",
-        });
+        // Erro já tratado no handleUploadImage
         return;
       }
     }
 
     try {
-      // Converter arrays para string para salvar no banco
+      // ✅ Usar a URL obtida (pode ser a existente ou a nova)
       const recipeToSave = {
-        ...formData,
+        nome: formData.nome,
+        categoria: formData.categoria,
+        tempo: formData.tempo,
+        publicada: formData.publicada,
+        foto_url: fotoUrl, // URL da imagem (do estado ou do upload)
         ingredientes: ingredientesFiltrados
           .map((item) => `• ${item.trim()}`)
           .join("\n"),
@@ -331,6 +331,8 @@ export function RecipeFormDialog({
           .map((item, index) => `${index + 1}. ${item.trim()}`)
           .join("\n"),
       };
+
+      console.log("📝 Salvando receita com foto_url:", fotoUrl);
 
       if (recipe) {
         await updateMutation.mutateAsync({
@@ -350,6 +352,7 @@ export function RecipeFormDialog({
       }
       onOpenChange(false);
     } catch (error) {
+      console.error("❌ Erro ao salvar receita:", error);
       toast({
         title: "❌ Erro ao salvar",
         description: "Não foi possível salvar a receita. Tente novamente.",
@@ -429,7 +432,7 @@ export function RecipeFormDialog({
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading}
                 >
-                  <Camera className="w-4 h-4" />
+                  <FolderOpen className="w-4 h-4" />
                   Escolher Imagem
                 </Button>
 
@@ -448,7 +451,7 @@ export function RecipeFormDialog({
                       </>
                     ) : (
                       <>
-                        <Camera className="w-4 h-4" />
+                        <Check className="w-4 h-4" />
                         Enviar Imagem
                       </>
                     )}
@@ -457,15 +460,15 @@ export function RecipeFormDialog({
               </div>
 
               {formData.foto_url && (
-                <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
-                  ✅ Imagem já enviada: {formData.foto_url.substring(0, 50)}...
+                <div className="text-xs text-green-600 bg-green-50 p-2 rounded flex items-center gap-1">
+                  <Check className="w-3 h-3" />
+                  Imagem pronta para salvar
                 </div>
               )}
             </div>
 
             <p className="text-xs text-muted-foreground">
-              📸 Tire uma foto da receita pronta ou escolha da galeria • Tipos:
-              JPG, PNG, WebP, GIF • Máx: 5MB
+              📸 Escolha uma imagem da galeria • Tipos: JPG, PNG, WebP, GIF • Máx: 5MB
             </p>
           </div>
 
