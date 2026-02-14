@@ -10,6 +10,7 @@ interface ProductCardProps {
   descricao: string;
   preco: number;
   foto_url: string;
+  fotoUrl?: string;
   desconto_percentual?: number;
   desconto_ativo?: boolean;
   preco_original?: number;
@@ -21,6 +22,7 @@ export function ProductCard({
   descricao,
   preco,
   foto_url,
+  fotoUrl,
   desconto_percentual = 0,
   desconto_ativo = false,
   preco_original,
@@ -42,7 +44,8 @@ export function ProductCard({
       preco: precoExibido,
       originalPreco: preco_original,
       descricao,
-      foto_url
+      foto_url,
+      fotoUrl
     });
 
     // Feedback visual
@@ -76,7 +79,7 @@ export function ProductCard({
           </div>
         )}
         <img
-          src={foto_url || "/placeholder.svg"}
+          src={foto_url || fotoUrl ||"/placeholder.svg"}
           alt={nome}
           className={`w-full h-full object-cover transition-transform duration-300 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
