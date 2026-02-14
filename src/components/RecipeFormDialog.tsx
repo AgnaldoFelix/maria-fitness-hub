@@ -84,6 +84,7 @@ export function RecipeFormDialog({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false); // Estado para controlar upload em andamento
 
   // Converter string para array ao carregar receita existente
   useEffect(() => {
@@ -185,12 +186,19 @@ export function RecipeFormDialog({
       throw new Error("Nenhuma imagem selecionada");
     }
 
+    setIsUploading(true);
     setUploadingImage(true);
+    
     try {
       const imageUrl = await uploadImage.mutateAsync(selectedImage);
       
-      // Atualizar formData com a URL da imagem
+      console.log("✅ Upload concluído, URL:", imageUrl);
+      
+      // Atualizar o estado com a nova URL
       setFormData(prev => ({ ...prev, foto_url: imageUrl }));
+      
+      // Limpar o arquivo selecionado já que foi enviado
+      setSelectedImage(null);
       
       toast({
         title: "✅ Imagem enviada!",
@@ -199,6 +207,7 @@ export function RecipeFormDialog({
       
       return imageUrl;
     } catch (error: any) {
+      console.error("❌ Erro no upload:", error);
       toast({
         title: "❌ Erro ao enviar imagem",
         description: error.message || "Erro ao enviar imagem",
@@ -207,6 +216,7 @@ export function RecipeFormDialog({
       throw error;
     } finally {
       setUploadingImage(false);
+      setIsUploading(false);
     }
   };
 
@@ -264,6 +274,16 @@ export function RecipeFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Se estiver fazendo upload, não permitir submit
+    if (isUploading) {
+      toast({
+        title: "Upload em andamento",
+        description: "Aguarde o término do upload da imagem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Filtrar ingredientes e passos vazios
     const ingredientesFiltrados = formData.ingredientes.filter((item) =>
       item.trim()
@@ -300,16 +320,23 @@ export function RecipeFormDialog({
       return;
     }
 
-    // 🔴 PARTE CRÍTICA: Upload da imagem PRIMEIRO
+    // 🔴 NOVO FLUXO: Upload automático se tiver imagem selecionada
     let fotoUrl = formData.foto_url;
     
     if (selectedImage) {
       try {
-        // Se já tem imagem selecionada, fazer upload e obter URL
+        // Mostrar toast de processamento
+        toast({
+          title: "⏳ Enviando imagem...",
+          description: "Aguarde enquanto a imagem é processada.",
+        });
+        
+        // Fazer upload e obter URL
         fotoUrl = await handleUploadImage();
         
-        // Aguardar estado atualizar
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Pequena pausa para garantir que o estado atualizou
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
       } catch (error) {
         // Erro já tratado no handleUploadImage
         return;
@@ -317,13 +344,13 @@ export function RecipeFormDialog({
     }
 
     try {
-      // ✅ Usar a URL obtida (pode ser a existente ou a nova)
+      // Preparar dados para salvar - usar a URL obtida
       const recipeToSave = {
         nome: formData.nome,
         categoria: formData.categoria,
         tempo: formData.tempo,
         publicada: formData.publicada,
-        foto_url: fotoUrl, // URL da imagem (do estado ou do upload)
+        foto_url: fotoUrl || null, // Usar a URL obtida (pode vir do upload ou já existir)
         ingredientes: ingredientesFiltrados
           .map((item) => `• ${item.trim()}`)
           .join("\n"),
@@ -332,7 +359,10 @@ export function RecipeFormDialog({
           .join("\n"),
       };
 
-      console.log("📝 Salvando receita com foto_url:", fotoUrl);
+      console.log("📝 Salvando receita com dados:", {
+        ...recipeToSave,
+        foto_url: recipeToSave.foto_url ? "URL presente" : "Sem URL"
+      });
 
       if (recipe) {
         await updateMutation.mutateAsync({
@@ -350,7 +380,10 @@ export function RecipeFormDialog({
           description: "Sua receita foi criada com sucesso.",
         });
       }
+      
+      // Fechar o modal
       onOpenChange(false);
+      
     } catch (error) {
       console.error("❌ Erro ao salvar receita:", error);
       toast({
@@ -414,7 +447,7 @@ export function RecipeFormDialog({
               )}
             </div>
 
-            {/* Botões de Upload */}
+            {/* Botões de Upload - AGORA MAIS SIMPLES */}
             <div className="flex flex-col gap-2">
               <input
                 ref={fileInputRef}
@@ -422,6 +455,7 @@ export function RecipeFormDialog({
                 accept="image/*"
                 className="hidden"
                 onChange={handleImageSelect}
+                disabled={isLoading}
               />
 
               <div className="flex gap-2">
@@ -433,45 +467,39 @@ export function RecipeFormDialog({
                   disabled={isLoading}
                 >
                   <FolderOpen className="w-4 h-4" />
-                  Escolher Imagem
+                  {selectedImage ? "Trocar Imagem" : "Escolher Imagem"}
                 </Button>
 
-                {selectedImage && !formData.foto_url && (
-                  <Button
-                    type="button"
-                    variant="default"
-                    className="flex-1 gap-2"
-                    onClick={handleUploadImage}
-                    disabled={uploadingImage}
-                  >
-                    {uploadingImage ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        Enviando...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" />
-                        Enviar Imagem
-                      </>
-                    )}
-                  </Button>
+                {/* Indicador de imagem selecionada */}
+                {selectedImage && (
+                  <div className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm">
+                    <Check className="w-4 h-4" />
+                    <span className="truncate">Imagem selecionada</span>
+                  </div>
                 )}
               </div>
 
-              {formData.foto_url && (
+              {/* Status da imagem */}
+              {formData.foto_url && !selectedImage && (
                 <div className="text-xs text-green-600 bg-green-50 p-2 rounded flex items-center gap-1">
                   <Check className="w-3 h-3" />
                   Imagem pronta para salvar
                 </div>
               )}
+
+              {selectedImage && (
+                <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                  ⚡ A imagem será enviada automaticamente ao salvar a receita
+                </div>
+              )}
             </div>
 
             <p className="text-xs text-muted-foreground">
-              📸 Escolha uma imagem da galeria • Tipos: JPG, PNG, WebP, GIF • Máx: 5MB
+              📱 Selecione uma imagem do celular • Tipos: JPG, PNG, WebP, GIF • Máx: 5MB
             </p>
           </div>
 
+          {/* Resto do formulário permanece igual */}
           {/* Nome da Receita */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -731,7 +759,7 @@ export function RecipeFormDialog({
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Salvando...
+                  {uploadingImage ? "Enviando imagem..." : "Salvando..."}
                 </>
               ) : recipe ? (
                 "Salvar Alterações"

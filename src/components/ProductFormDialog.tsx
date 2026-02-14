@@ -132,40 +132,66 @@ export function ProductFormDialog({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // Se tem imagem selecionada mas não foi enviada, enviar primeiro
-    if (selectedImage && !formData.foto_url) {
-      await handleUploadImage();
-      // Aguardar um pouco para o estado atualizar
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
+  // Se estiver fazendo upload, não permitir submit
+  if (uploadingImage) {
+    toast({
+      title: "Upload em andamento",
+      description: "Aguarde o término do upload da imagem.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    const payload = {
-      nome: formData.nome,
-      descricao: formData.descricao,
-      preco: parseFloat(formData.preco),
-      foto_url: formData.foto_url || null,
-      disponivel: formData.disponivel,
-      mensagem_whatsapp: formData.mensagem_whatsapp || null,
-    };
-
+  // Upload automático se tiver imagem selecionada
+  let fotoUrl = formData.foto_url as any;
+  
+  if (selectedImage) {
     try {
-      if (product) {
-        await updateMutation.mutateAsync({
-          id: product.id,
-          ...payload,
-        });
-        toast({ title: "Produto atualizado com sucesso!" });
-      } else {
-        await createMutation.mutateAsync(payload);
-        toast({ title: "Produto criado com sucesso!" });
-      }
-      onOpenChange(false);
+      toast({
+        title: "⏳ Enviando imagem...",
+        description: "Aguarde enquanto a imagem é processada.",
+      });
+      
+      fotoUrl = await handleUploadImage();
+      
+      // Pequena pausa para garantir que o estado atualizou
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
     } catch (error) {
-      toast({ title: "Erro ao salvar produto", variant: "destructive" });
+      return;
     }
+  }
+
+  const payload = {
+    nome: formData.nome,
+    descricao: formData.descricao,
+    preco: parseFloat(formData.preco),
+    foto_url: fotoUrl || null,
+    disponivel: formData.disponivel,
+    mensagem_whatsapp: formData.mensagem_whatsapp || null,
   };
+
+  try {
+    if (product) {
+      await updateMutation.mutateAsync({
+        id: product.id,
+        ...payload,
+      });
+    } else {
+      await createMutation.mutateAsync(payload);
+    }
+    toast({ title: "✅ Produto salvo com sucesso!" });
+    onOpenChange(false);
+  } catch (error) {
+    toast({ 
+      title: "❌ Erro ao salvar", 
+      description: "Não foi possível salvar o produto.",
+      variant: "destructive" 
+    });
+  }
+};
 
   const isLoading =
     createMutation.isPending || updateMutation.isPending || uploadingImage;
