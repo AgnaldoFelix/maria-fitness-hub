@@ -417,7 +417,6 @@ export function RecipeFormDialog({
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 className="hidden"
                 onChange={handleImageSelect}
               />
