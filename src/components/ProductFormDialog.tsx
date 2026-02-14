@@ -17,7 +17,7 @@ import {
   type Product,
 } from "@/hooks/useProducts";
 import { useUploadImage } from "@/hooks/useUploadImage";
-import { Loader2, Camera, X, Image as ImageIcon } from "lucide-react";
+import { Loader2, FolderOpen, X, Image as ImageIcon, Check } from "lucide-react";
 
 interface ProductFormDialogProps {
   open: boolean;
@@ -47,6 +47,7 @@ export function ProductFormDialog({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -59,6 +60,7 @@ export function ProductFormDialog({
         mensagem_whatsapp: product.mensagem_whatsapp || "",
       });
       setImagePreview(product.foto_url || "");
+      setSelectedImage(null);
     } else {
       setFormData({
         nome: "",
@@ -98,6 +100,7 @@ export function ProductFormDialog({
     }
 
     setSelectedImage(file);
+    setFormData(prev => ({ ...prev, foto_url: "" })); // Reset URL ao selecionar nova imagem
 
     // Criar preview
     const reader = new FileReader();
@@ -107,91 +110,135 @@ export function ProductFormDialog({
     reader.readAsDataURL(file);
   };
 
-  const handleUploadImage = async () => {
-    if (!selectedImage) return;
+  // 🔴 CORRIGIDO: Agora retorna a URL
+  const handleUploadImage = async (): Promise<string> => {
+    if (!selectedImage) {
+      throw new Error("Nenhuma imagem selecionada");
+    }
 
+    setIsUploading(true);
     setUploadingImage(true);
+    
     try {
       const imageUrl = await uploadImage.mutateAsync(selectedImage);
-      setFormData({ ...formData, foto_url: imageUrl });
+      
+      console.log("✅ Upload concluído, URL:", imageUrl);
+      
+      // Atualizar o estado com a nova URL
+      setFormData(prev => ({ ...prev, foto_url: imageUrl }));
+      
+      // Limpar o arquivo selecionado já que foi enviado
+      setSelectedImage(null);
+      
       toast.success("Imagem enviada com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao enviar imagem");
+      
+      return imageUrl; // ✅ RETORNA a URL
+      
+    } catch (error: any) {
+      console.error("❌ Erro no upload:", error);
+      toast.error(error.message || "Erro ao enviar imagem");
+      throw error;
     } finally {
       setUploadingImage(false);
+      setIsUploading(false);
     }
   };
 
   const handleRemoveImage = () => {
     setSelectedImage(null);
     setImagePreview("");
-    setFormData({ ...formData, foto_url: "" });
+    setFormData(prev => ({ ...prev, foto_url: "" }));
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // Se estiver fazendo upload, não permitir submit
-  if (uploadingImage) {
-    toast({
-      title: "Upload em andamento",
-      description: "Aguarde o término do upload da imagem.",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  // Upload automático se tiver imagem selecionada
-  let fotoUrl = formData.foto_url as any;
-  
-  if (selectedImage) {
-    try {
+    // Se estiver fazendo upload, não permitir submit
+    if (isUploading) {
       toast({
-        title: "⏳ Enviando imagem...",
-        description: "Aguarde enquanto a imagem é processada.",
+        title: "Upload em andamento",
+        description: "Aguarde o término do upload da imagem.",
+        variant: "destructive",
       });
-      
-      fotoUrl = await handleUploadImage();
-      
-      // Pequena pausa para garantir que o estado atualizou
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-    } catch (error) {
       return;
     }
-  }
 
-  const payload = {
-    nome: formData.nome,
-    descricao: formData.descricao,
-    preco: parseFloat(formData.preco),
-    foto_url: fotoUrl || null,
-    disponivel: formData.disponivel,
-    mensagem_whatsapp: formData.mensagem_whatsapp || null,
-  };
-
-  try {
-    if (product) {
-      await updateMutation.mutateAsync({
-        id: product.id,
-        ...payload,
-      });
-    } else {
-      await createMutation.mutateAsync(payload);
+    // Upload automático se tiver imagem selecionada
+    let fotoUrl = formData.foto_url;
+    
+    if (selectedImage) {
+      try {
+        toast({
+          title: "⏳ Enviando imagem...",
+          description: "Aguarde enquanto a imagem é processada.",
+        });
+        
+        // ✅ AGORA FUNCIONA: handleUploadImage retorna a URL
+        fotoUrl = await handleUploadImage();
+        
+        // Pequena pausa para garantir que o estado atualizou
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+      } catch (error) {
+        // Erro já tratado no handleUploadImage
+        return;
+      }
     }
-    toast({ title: "✅ Produto salvo com sucesso!" });
-    onOpenChange(false);
-  } catch (error) {
-    toast({ 
-      title: "❌ Erro ao salvar", 
-      description: "Não foi possível salvar o produto.",
-      variant: "destructive" 
+
+    // Validar campos obrigatórios
+    if (!formData.nome.trim()) {
+      toast.error("Nome do produto é obrigatório");
+      return;
+    }
+
+    if (!formData.descricao.trim()) {
+      toast.error("Descrição do produto é obrigatória");
+      return;
+    }
+
+    if (!formData.preco || parseFloat(formData.preco) <= 0) {
+      toast.error("Preço inválido");
+      return;
+    }
+
+    const payload = {
+      nome: formData.nome.trim(),
+      descricao: formData.descricao.trim(),
+      preco: parseFloat(formData.preco),
+      foto_url: fotoUrl || null, // ✅ Usar a URL obtida
+      disponivel: formData.disponivel,
+      mensagem_whatsapp: formData.mensagem_whatsapp?.trim() || null,
+    };
+
+    console.log("📝 Salvando produto com payload:", {
+      ...payload,
+      foto_url: payload.foto_url ? "URL presente" : "Sem URL"
     });
-  }
-};
+
+    try {
+      if (product) {
+        await updateMutation.mutateAsync({
+          id: product.id,
+          ...payload,
+        });
+        toast({ title: "✅ Produto atualizado com sucesso!" });
+      } else {
+        await createMutation.mutateAsync(payload);
+        toast({ title: "✅ Produto criado com sucesso!" });
+      }
+      onOpenChange(false);
+    } catch (error) {
+      console.error("❌ Erro ao salvar produto:", error);
+      toast({ 
+        title: "❌ Erro ao salvar", 
+        description: "Não foi possível salvar o produto.",
+        variant: "destructive" 
+      });
+    }
+  };
 
   const isLoading =
     createMutation.isPending || updateMutation.isPending || uploadingImage;
@@ -237,49 +284,55 @@ export function ProductFormDialog({
               )}
             </div>
 
-            {/* Botões de Upload */}
-            <div className="flex gap-2">
+            {/* Botões de Upload - SIMPLIFICADO */}
+            <div className="flex flex-col gap-2">
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
                 onChange={handleImageSelect}
+                disabled={isLoading}
               />
 
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 gap-2"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
-              >
-                <Camera className="w-4 h-4" />
-                Escolher Imagem
-              </Button>
-
-              {selectedImage && !formData.foto_url && (
+              <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant="default"
+                  variant="outline"
                   className="flex-1 gap-2"
-                  onClick={handleUploadImage}
-                  disabled={uploadingImage}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
                 >
-                  {uploadingImage ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Camera className="w-4 h-4" />
-                      Enviar Imagem
-                    </>
-                  )}
+                  <FolderOpen className="w-4 h-4" />
+                  {selectedImage ? "Trocar Imagem" : "Escolher Imagem"}
                 </Button>
+
+                {/* Indicador de imagem selecionada */}
+                {selectedImage && (
+                  <div className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm">
+                    <Check className="w-4 h-4" />
+                    <span className="truncate">Imagem selecionada</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Status da imagem */}
+              {formData.foto_url && !selectedImage && (
+                <div className="text-xs text-green-600 bg-green-50 p-2 rounded flex items-center gap-1">
+                  <Check className="w-3 h-3" />
+                  Imagem pronta para salvar
+                </div>
+              )}
+
+              {selectedImage && (
+                <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                  ⚡ A imagem será enviada automaticamente ao salvar o produto
+                </div>
               )}
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Tipos suportados: JPG, PNG, WebP, GIF. Tamanho máximo: 5MB.
+              📱 Selecione uma imagem do celular • Tipos: JPG, PNG, WebP, GIF • Máx: 5MB
             </p>
           </div>
 
@@ -374,7 +427,7 @@ export function ProductFormDialog({
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Salvando...
+                  {uploadingImage ? "Enviando imagem..." : "Salvando..."}
                 </>
               ) : product ? (
                 "Salvar Produto"
