@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { ShoppingBag, Check, ShoppingCartIcon } from "lucide-react";
+import { Check, ShoppingCartIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useCheckout } from "@/contexts/CheckoutContext";
 
 interface ProductCardProps {
@@ -10,7 +9,6 @@ interface ProductCardProps {
   descricao: string;
   preco: number;
   foto_url: string;
-  fotoUrl?: string;
   desconto_percentual?: number;
   desconto_ativo?: boolean;
   preco_original?: number;
@@ -22,7 +20,6 @@ export function ProductCard({
   descricao,
   preco,
   foto_url,
-  fotoUrl,
   desconto_percentual = 0,
   desconto_ativo = false,
   preco_original,
@@ -38,14 +35,14 @@ export function ProductCard({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     
+    // Usar apenas os campos que existem na interface CartItem
     addToCart({
       id,
       nome,
-      preco: precoExibido,
-      originalPreco: preco_original,
+      preco: precoExibido, // Usar o preço com desconto se aplicável
       descricao,
-      foto_url,
-      fotoUrl
+      foto_url: foto_url || '/placeholder.svg',
+      quantidade: 1 // A quantidade será controlada pelo contexto
     });
 
     // Feedback visual
@@ -79,7 +76,7 @@ export function ProductCard({
           </div>
         )}
         <img
-          src={foto_url || fotoUrl ||"/placeholder.svg"}
+          src={foto_url || "/placeholder.svg"}
           alt={nome}
           className={`w-full h-full object-cover transition-transform duration-300 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
@@ -132,7 +129,7 @@ export function ProductCard({
               relative w-10 h-10 rounded-[12px] flex items-center justify-center
               ${isInCart || addedToCart 
                 ? 'bg-green-500 text-white' 
-                : 'bg-blue-500 text-white hover:bg-blue/90'
+                : 'bg-blue-500 text-white hover:bg-blue-600'
               }
               transition-all duration-200
             `}
@@ -145,7 +142,7 @@ export function ProductCard({
             )}
             
             {/* Feedback visual de adicionado */}
-            {addedToCart && (
+            {addedToCart && !isInCart && (
               <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center animate-bounce">
                 ✓
               </div>

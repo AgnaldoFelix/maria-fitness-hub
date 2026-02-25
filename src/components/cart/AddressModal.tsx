@@ -1,3 +1,4 @@
+// components/checkout/AddressModal.tsx
 import { Modal } from '@heroui/react';
 import { X, MapPin, User, Phone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ export function AddressModal() {
     isAddressModalOpen, 
     closeAddressModal, 
     updateCustomerInfo,
-    openCheckout,
+    openPixModal, // Mude de openCheckout para openPixModal
     cart 
   } = useCheckout();
 
@@ -55,9 +56,18 @@ export function AddressModal() {
     e.preventDefault();
     
     if (validateForm()) {
+      // 1. Primeiro atualiza as informações do cliente
       updateCustomerInfo(formData);
+      
+      // 2. Fecha o modal de endereço
       closeAddressModal();
-      openCheckout();
+      
+      // 3. Abre o modal PIX diretamente
+      // O frete será recalculado automaticamente porque customerInfo mudou
+      openPixModal();
+      
+      // Log para debug
+      console.log('📝 Endereço salvo:', formData);
     }
   };
 

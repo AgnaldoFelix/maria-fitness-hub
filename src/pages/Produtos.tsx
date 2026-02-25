@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useProducts } from "@/hooks/useProducts";
 import { useSettings } from "@/hooks/useSettings";
 import { ProductCard } from "@/components/products/ProductCard";
-import { CheckoutModal } from "@/components/checkout/CheckoutModal";
+import { CheckoutModal } from "@/components/checkout/CheckoutModalPix";
 import { PixModal } from "@/components/checkout/PixModal";
 
 export default function Produtos() {
@@ -149,9 +149,6 @@ export default function Produtos() {
             )}
           </>
         )}
-              {/* Modal de Checkout */}
-      <CheckoutModal />
-      <PixModal />
       </main>
 
       <BottomNav />

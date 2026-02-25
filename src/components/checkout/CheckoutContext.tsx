@@ -1,4 +1,8 @@
+// contexts/CheckoutContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+// Adicione a constante do frete
+const FRETE_FIXO = 6;
 
 interface CartItem {
   id: string;
@@ -19,6 +23,8 @@ interface CustomerInfo {
 interface CheckoutContextType {
   cart: CartItem[];
   total: number;
+  subtotal: number;
+  frete: number;
   isCartOpen: boolean;
   isCheckoutOpen: boolean;
   isAddressModalOpen: boolean;
@@ -58,18 +64,41 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   });
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'pix' | null>(null);
 
-  const total = cart.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+  // Calcular subtotal (soma dos produtos)
+  const subtotal = cart.reduce((acc, item) => {
+    const preco = Number(item.preco) || 0;
+    const quantidade = Number(item.quantidade) || 0;
+    return acc + (preco * quantidade);
+  }, 0);
+  
+  // FRETE FIXO - sempre R$ 6,00 quando há itens no carrinho
+  // Independente do endereço!
+  const frete = cart.length > 0 ? FRETE_FIXO : 0;
+  
+  // Total final (subtotal + frete)
+  const total = subtotal + frete;
 
   const addToCart = (item: CartItem) => {
+    const itemComPrecoValido = {
+      ...item,
+      preco: Number(item.preco) || 0,
+      quantidade: Number(item.quantidade) || 1
+    };
+
     setCart(prev => {
-      const existingItem = prev.find(i => i.id === item.id);
+      const existingItem = prev.find(i => i.id === itemComPrecoValido.id);
       if (existingItem) {
         return prev.map(i =>
-          i.id === item.id ? { ...i, quantidade: i.quantidade + 1 } : i
+          i.id === itemComPrecoValido.id 
+            ? { ...i, quantidade: (i.quantidade || 0) + 1 } 
+            : i
         );
       }
-      return [...prev, { ...item, quantidade: 1 }];
+      return [...prev, { ...itemComPrecoValido, quantidade: 1 }];
     });
+
+    // Abre o carrinho automaticamente ao adicionar
+    setIsCartOpen(true);
   };
 
   const removeFromCart = (id: string) => {
@@ -82,7 +111,11 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
       return;
     }
     setCart(prev =>
-      prev.map(item => item.id === id ? { ...item, quantidade: quantity } : item)
+      prev.map(item => 
+        item.id === id 
+          ? { ...item, quantidade: quantity } 
+          : item
+      )
     );
   };
 
@@ -106,7 +139,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     // Enviar mensagem para WhatsApp
     const message = `✅ NOVA COMPRA CONFIRMADA ✅\n\n👤 Cliente: ${customerInfo.nome}\n📍 Endereço: ${customerInfo.endereco}\n📞 Telefone: ${customerInfo.telefone || 'Não informado'}\n\n🛒 Itens Comprados:\n${cart.map(item => 
       `• ${item.nome} (${item.quantidade}x) - R$ ${(item.preco * item.quantidade).toFixed(2)}`
-    ).join('\n')}\n\n💰 Total: R$ ${total.toFixed(2)}\n💳 Método: PIX\n\n🚚 Entregar em: ${customerInfo.endereco}`;
+    ).join('\n')}\n\n📦 Subtotal: R$ ${subtotal.toFixed(2)}\n🚚 Frete: R$ ${frete.toFixed(2)} (fixo)\n💰 Total: R$ ${total.toFixed(2)}\n💳 Método: PIX\n\n🚚 Entregar em: ${customerInfo.endereco}`;
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappNumber = '5579996848609'; // Número da dona do app
@@ -118,13 +151,22 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     closePixModal();
     closeCheckout();
     closeAddressModal();
+    closeCart();
   };
+
+  // Log para debug
+  console.log('🛒 Cart Items:', cart.length);
+  console.log('💰 subtotal:', subtotal);
+  console.log('🚚 frete:', frete);
+  console.log('💵 total:', total);
 
   return (
     <CheckoutContext.Provider
       value={{
         cart,
         total,
+        subtotal,
+        frete,
         isCartOpen,
         isCheckoutOpen,
         isAddressModalOpen,

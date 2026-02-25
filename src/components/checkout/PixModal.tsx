@@ -1,7 +1,6 @@
-import { Modal } from '@heroui/react';
+import { useCheckout } from '@/contexts/CheckoutContext';
 import { X, Copy, Check, QrCode, Clock, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCheckout } from '@/contexts/CheckoutContext';
 import { useState } from 'react';
 
 export function PixModal() {
@@ -10,6 +9,8 @@ export function PixModal() {
     closePixModal, 
     confirmPayment,
     total,
+    subtotal, // Adicione isso se tiver no contexto
+    frete,    // Adicione isso se tiver no contexto
     customerInfo,
     cart
   } = useCheckout();
@@ -21,13 +22,20 @@ export function PixModal() {
   const pixLink = 'https://nubank.com.br/cobrar/49qeh/6978f735-eac5-4135-95a4-08618c098801';
   const pixCode = '00020101021226860014br.gov.bcb.pix2565qrcode-pix.gerencianet.com.br/qr/v2/9d3616f2-8bc8-40b3-bf17-7c7e8e8c8e8c5204000053039865406100.005802BR5925Nubank Tecnologia e Ser6009Sao Paulo62070503***6304E2CA';
 
-  const formatPrice = (price: number) => {
+  console.log('🎯 PixModal renderizado, isOpen:', isPixModalOpen);
+
+const formatPrice = (price: number | undefined) => {
+  if (price === undefined || isNaN(price)) {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
-    }).format(price);
-  };
-
+    }).format(0);
+  }
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(price);
+};
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -36,31 +44,25 @@ export function PixModal() {
 
   const handleConfirmPayment = async () => {
     setPaymentConfirmed(true);
-    await confirmPayment('pix');
+    await confirmPayment();
   };
 
+  if (!isPixModalOpen) return null;
+
   return (
-    <Modal
-      isOpen={isPixModalOpen}
-      onClose={closePixModal}
-      hideCloseButton={false}
-      backdrop="blur"
-      classNames={{
-        base: [
-          "max-w-md mx-auto",
-          "rounded-2xl",
-          "border border-gray-200",
-          "shadow-2xl"
-        ].join(" "),
-        wrapper: "z-[9999] px-4",
-        body: "p-0"
-      }}
-    >
-      <div className="p-6">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/50"
+        onClick={closePixModal}
+      />
+      
+      {/* Modal */}
+      <div className="relative bg-white rounded-2xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto z-10 shadow-2xl border border-gray-200">
         {/* Header */}
-        <div className="flex items-center justify-between ">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold ">Pagamento via PIX</h2>
+            <h2 className="text-xl font-bold">Pagamento via PIX</h2>
             <p className="text-sm text-gray-600">Escaneie o QR Code ou copie o código</p>
           </div>
           <button
@@ -84,9 +86,13 @@ export function PixModal() {
             
             {/* QR Code Image */}
             <img 
-              src={'public/QrCode.jpeg'}
+              src={'/QrCode.jpeg'}
               alt="QR Code PIX"
               className="w-64 h-64 mb-6 rounded-lg border"
+              onError={(e) => {
+                // Fallback se a imagem não carregar
+                e.currentTarget.style.display = 'none';
+              }}
             />
             
             <p className="text-center text-sm text-gray-600 mb-4">
@@ -130,8 +136,7 @@ export function PixModal() {
           <Button
             onClick={() => window.open(pixLink, '_blank')}
             variant="outline"
-            className="w-full flex items-center justify-center gap-2 "
-            color='primary'
+            className="w-full flex items-center justify-center gap-2"
           >
             <Smartphone className="w-4 h-4" />
             Abrir no Nubank para pagar
@@ -158,9 +163,25 @@ export function PixModal() {
               <span className="text-gray-600">Itens:</span>
               <span>{cart.length} produto{cart.length !== 1 ? 's' : ''}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Total:</span>
-              <span className="font-bold text-green-700">{formatPrice(total)}</span>
+            
+            {/* Detalhamento do valor */}
+            {subtotal !== undefined && frete !== undefined && (
+              <>
+                <div className="border-t border-dashed my-2"></div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal:</span>
+                  <span>{formatPrice(subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Frete:</span>
+                  <span className="text-green-600">{formatPrice(frete)}</span>
+                </div>
+              </>
+            )}
+            
+            <div className="flex justify-between font-bold text-base pt-2 border-t">
+              <span>Total:</span>
+              <span className="text-green-700">{formatPrice(total)}</span>
             </div>
           </div>
         </div>
@@ -195,6 +216,6 @@ export function PixModal() {
           </Button>
         </div>
       </div>
-    </Modal>
+    </div>
   );
 }

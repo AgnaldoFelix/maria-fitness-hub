@@ -19,7 +19,7 @@ export default function Sucesso() {
 
   const paymentId = searchParams.get("payment_id");
   const total = searchParams.get("total");
-  const method = searchParams.get("method") || "pix"; // Default para PIX
+  const method = searchParams.get("method") || "pix"; 
   const customerName = searchParams.get("customer_name");
   const customerAddress = searchParams.get("customer_address");
 

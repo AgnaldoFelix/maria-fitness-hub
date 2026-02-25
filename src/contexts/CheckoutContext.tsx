@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+const FRETE_FIXO = 5;
+
 interface CartItem {
   id: string;
   nome: string;
@@ -19,13 +21,15 @@ interface CustomerInfo {
 interface CheckoutContextType {
   cart: CartItem[];
   total: number;
+  subtotal: number;
+  frete: number;
   isCartOpen: boolean;
   isCheckoutOpen: boolean;
   isAddressModalOpen: boolean;
   customerInfo: CustomerInfo;
   paymentMethod: 'stripe' | 'pix' | null;
   isPixModalOpen: boolean;
-  addToCart: (item: Omit<CartItem, 'quantidade'>) => void;
+  addToCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   openCart: () => void;
@@ -39,8 +43,7 @@ interface CheckoutContextType {
   setPaymentMethod: (method: 'stripe' | 'pix' | null) => void;
   openPixModal: () => void;
   closePixModal: () => void;
-  confirmPayment: (paymentMethod: 'stripe' | 'pix') => Promise<void>;
-  goToPayment: () => void;
+  confirmPayment: () => Promise<void>;
 }
 
 const CheckoutContext = createContext<CheckoutContextType | undefined>(undefined);
@@ -59,18 +62,34 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   });
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'pix' | null>(null);
 
-  const total = cart.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+  // Cálculos
+  const subtotal = cart.reduce((acc, item) => {
+    const preco = Number(item.preco) || 0;
+    const quantidade = Number(item.quantidade) || 0;
+    return acc + preco * quantidade;
+  }, 0);
 
-  const addToCart = (item: Omit<CartItem, 'quantidade'>) => {
+  const frete = cart.length > 0 ? FRETE_FIXO : 0;
+  const total = subtotal + frete;
+
+  const addToCart = (item: CartItem) => {
+    const itemComPrecoValido = {
+      ...item,
+      preco: Number(item.preco) || 0,
+      quantidade: Number(item.quantidade) || 1
+    };
     setCart(prev => {
-      const existingItem = prev.find(i => i.id === item.id);
+      const existingItem = prev.find(i => i.id === itemComPrecoValido.id);
       if (existingItem) {
         return prev.map(i =>
-          i.id === item.id ? { ...i, quantidade: i.quantidade + 1 } : i
+          i.id === itemComPrecoValido.id
+            ? { ...i, quantidade: (i.quantidade || 0) + 1 }
+            : i
         );
       }
-      return [...prev, { ...item, quantidade: 1 }];
+      return [...prev, { ...itemComPrecoValido, quantidade: 1 }];
     });
+    setIsCartOpen(true);
   };
 
   const removeFromCart = (id: string) => {
@@ -83,7 +102,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
       return;
     }
     setCart(prev =>
-      prev.map(item => item.id === id ? { ...item, quantidade: quantity } : item)
+      prev.map(item => (item.id === id ? { ...item, quantidade: quantity } : item))
     );
   };
 
@@ -92,106 +111,84 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const openCheckout = () => setIsCheckoutOpen(true);
   const closeCheckout = () => setIsCheckoutOpen(false);
   const clearCart = () => setCart([]);
-
   const openAddressModal = () => setIsAddressModalOpen(true);
   const closeAddressModal = () => setIsAddressModalOpen(false);
-
   const openPixModal = () => setIsPixModalOpen(true);
   const closePixModal = () => setIsPixModalOpen(false);
+  const updateCustomerInfo = (info: CustomerInfo) => setCustomerInfo(info);
 
-  const updateCustomerInfo = (info: CustomerInfo) => {
-    setCustomerInfo(info);
-  };
-
-  const goToPayment = () => {
-    closeAddressModal();
-    closeCart();
-    openCheckout();
-  };
-
-const sendWhatsAppNotification = async (paymentMethod: 'stripe' | 'pix') => {
-  try {
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    // Criar mensagem linha por linha para melhor controle
-    const messageLines = [
-      '✅ NOVA COMPRA CONFIRMADA ✅',
-      '',
-      `👤 Cliente: ${customerInfo.nome}`,
-      `📍 Endereço: ${customerInfo.endereco}`,
-      `📞 Telefone: ${customerInfo.telefone || 'Não informado'}`,
-      '',
-      '🛒 Itens Comprados:',
-      ...cart.map(item => 
-        `• ${item.nome} (${item.quantidade}x) - R$ ${(item.preco * item.quantidade).toFixed(2)}`
-      ),
-      '',
-      `💰 Total: R$ ${total.toFixed(2)}`,
-      `💳 Método: ${paymentMethod === 'pix' ? 'PIX' : 'Cartão de Crédito'}`,
-      '',
-      `📋 ID do Pedido: ${orderId}`,
-      `🚚 Entregar em: ${customerInfo.endereco}`,
-      '',
-      '⚠️ Por favor, confirme o recebimento e prepare a entrega!'
-    ];
-
-    const message = messageLines.join('\n');
-    
-    // Testar diferentes métodos de encoding
-    const encodedMessage = encodeURIComponent(message)
-      .replace(/%0A/g, '%0D%0A'); // Garantir quebras de linha CRLF
-    
-    // Número da vendedora
-    const vendorPhone = '5579996848609';
-    
-    // Criar link do WhatsApp (testar sem https também)
-    const whatsappLink = `https://api.whatsapp.com/send?phone=${vendorPhone}&text=${encodedMessage}`;
-    
-    // Abrir WhatsApp em nova aba
-    const newWindow = window.open(whatsappLink, '_blank', 'noopener,noreferrer');
-    if (newWindow) newWindow.opener = null;
-    
-    return whatsappLink;
-  } catch (error) {
-    console.error('Erro ao enviar notificação:', error);
-    
-    // Fallback: criar mensagem simples
-    const simpleMessage = `Nova compra confirmada - Cliente: ${customerInfo.nome} - Total: R$ ${total.toFixed(2)}`;
-    const encodedFallback = encodeURIComponent(simpleMessage);
-    const fallbackLink = `https://wa.me/5579996848609?text=${encodedFallback}`;
-    window.open(fallbackLink, '_blank');
-    
-    return fallbackLink;
-  }
-};
-
-  const confirmPayment = async (paymentMethod: 'stripe' | 'pix') => {
+  const sendWhatsAppNotification = async () => {
     try {
-      // Enviar notificação para WhatsApp
-      await sendWhatsAppNotification(paymentMethod);
-      
-      // Limpar carrinho e fechar modais
+      const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      const messageLines = [
+        '✅ NOVA COMPRA CONFIRMADA ✅',
+        '',
+        `👤 Cliente: ${customerInfo.nome}`,
+        `📍 Endereço: ${customerInfo.endereco}`,
+        `📞 Telefone: ${customerInfo.telefone || 'Não informado'}`,
+        '',
+        '🛒 Itens Comprados:',
+        ...cart.map(
+          item =>
+            `• ${item.nome} (${item.quantidade}x) - R$ ${(
+              item.preco * item.quantidade
+            ).toFixed(2)}`
+        ),
+        '',
+        `💰 Total: R$ ${total.toFixed(2)}`,
+        `💳 Método: PIX`,
+        '',
+        `📋 ID do Pedido: ${orderId}`,
+        `🚚 Entregar em: ${customerInfo.endereco}`,
+        '',
+        '⚠️ Por favor, confirme o recebimento e prepare a entrega!'
+      ];
+
+      const message = messageLines.join('\n');
+      const encodedMessage = encodeURIComponent(message).replace(/%0A/g, '%0D%0A');
+      const vendorPhone = '5579996848609';
+      const whatsappLink = `https://api.whatsapp.com/send?phone=${vendorPhone}&text=${encodedMessage}`;
+
+      window.open(whatsappLink, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Erro ao enviar notificação:', error);
+      const simpleMessage = `Nova compra confirmada - Cliente: ${customerInfo.nome} - Total: R$ ${total.toFixed(2)}`;
+      const encodedFallback = encodeURIComponent(simpleMessage);
+      const fallbackLink = `https://wa.me/5579996848609?text=${encodedFallback}`;
+      window.open(fallbackLink, '_blank');
+    }
+  };
+
+  const confirmPayment = async () => {
+    try {
+      await sendWhatsAppNotification();
       clearCart();
-      if (paymentMethod === 'pix') {
-        closePixModal();
-      }
+      closePixModal();
       closeCheckout();
       closeAddressModal();
-      
-      // Redirecionar para página de sucesso
-      window.location.href = `/sucesso?total=${total}&payment_method=${paymentMethod}`;
-      
+      closeCart();
+      // Se quiser redirecionar para uma página de sucesso, pode adicionar:
+      // window.location.href = `/sucesso?total=${total}&payment_method=pix`;
     } catch (error) {
       console.error('Erro ao confirmar pagamento:', error);
       alert('O pagamento foi confirmado, mas houve um erro ao enviar a notificação.');
     }
   };
 
+  // Log para debug
+  console.log('🛒 Cart Items:', cart.length);
+  console.log('💰 subtotal:', subtotal);
+  console.log('🚚 frete:', frete);
+  console.log('💵 total:', total);
+
   return (
     <CheckoutContext.Provider
       value={{
         cart,
         total,
+        subtotal,
+        frete,
         isCartOpen,
         isCheckoutOpen,
         isAddressModalOpen,
@@ -213,7 +210,6 @@ const sendWhatsAppNotification = async (paymentMethod: 'stripe' | 'pix') => {
         openPixModal,
         closePixModal,
         confirmPayment,
-        goToPayment
       }}
     >
       {children}
@@ -223,8 +219,6 @@ const sendWhatsAppNotification = async (paymentMethod: 'stripe' | 'pix') => {
 
 export function useCheckout() {
   const context = useContext(CheckoutContext);
-  if (!context) {
-    throw new Error('useCheckout must be used within a CheckoutProvider');
-  }
+  if (!context) throw new Error('useCheckout must be used within a CheckoutProvider');
   return context;
 }

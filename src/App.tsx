@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import SucessoPage from "./pages/Successo";
 import { CheckoutProvider } from "@/contexts/CheckoutContext";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { PixModal } from "./components/checkout/PixModal";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -90,6 +91,7 @@ function AppContent() {
       
       {/* Carrinho lateral */}
       <CartDrawer />
+          <PixModal /> {/* Apenas aqui, uma vez */}
     </BrowserRouter>
   );
 }
