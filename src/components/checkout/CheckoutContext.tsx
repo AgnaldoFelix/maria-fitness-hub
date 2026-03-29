@@ -142,7 +142,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     ).join('\n')}\n\n📦 Subtotal: R$ ${subtotal.toFixed(2)}\n🚚 Frete: R$ ${frete.toFixed(2)} (fixo)\n💰 Total: R$ ${total.toFixed(2)}\n💳 Método: PIX\n\n🚚 Entregar em: ${customerInfo.endereco}`;
 
     const encodedMessage = encodeURIComponent(message);
-    const whatsappNumber = '5579996848609'; // Número da dona do app
+    const whatsappNumber = '5579996287730'; // Número da dona do app
     
     window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
     

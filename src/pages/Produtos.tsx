@@ -17,7 +17,7 @@ export default function Produtos() {
   const { data: products = [], isLoading } = useProducts(true);
   const { data: settings } = useSettings();
 
-  const whatsappNumero = settings?.whatsapp_numero || "5579996848609";
+  const whatsappNumero = settings?.whatsapp_numero || "5579996287730";
 
   // Função para verificar se um desconto está ativo
   const isDescontoAtivo = (product: any) => {

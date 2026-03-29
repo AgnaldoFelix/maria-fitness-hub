@@ -36,9 +36,10 @@ export function RecipeModal({ recipe, open, onClose }: RecipeModalProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const whatsappNumero = settings?.whatsapp_numero || "5579996848609";
+  const whatsappNumero = settings?.whatsapp_numero || "5579996287730";
 
   if (!recipe) return null;
+
 
   // Função para quebrar texto longo automaticamente
   const autoBreakText = (text: string, maxLineLength = 60) => {

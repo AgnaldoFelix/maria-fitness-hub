@@ -89,6 +89,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { ...itemComPrecoValido, quantidade: 1 }];
     });
+    
     setIsCartOpen(true);
   };
 
@@ -147,7 +148,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
       const message = messageLines.join('\n');
       const encodedMessage = encodeURIComponent(message).replace(/%0A/g, '%0D%0A');
-      const vendorPhone = '5579996848609';
+      const vendorPhone = '5579996287730';
       const whatsappLink = `https://api.whatsapp.com/send?phone=${vendorPhone}&text=${encodedMessage}`;
 
       window.open(whatsappLink, '_blank', 'noopener,noreferrer');
@@ -155,7 +156,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
       console.error('Erro ao enviar notificação:', error);
       const simpleMessage = `Nova compra confirmada - Cliente: ${customerInfo.nome} - Total: R$ ${total.toFixed(2)}`;
       const encodedFallback = encodeURIComponent(simpleMessage);
-      const fallbackLink = `https://wa.me/5579996848609?text=${encodedFallback}`;
+      const fallbackLink = `https://wa.me/5579996287730?text=${encodedFallback}`;
       window.open(fallbackLink, '_blank');
     }
   };

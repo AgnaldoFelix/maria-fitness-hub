@@ -169,7 +169,7 @@ END $$;
 
 -- Insert default WhatsApp number
 INSERT INTO public.configuracoes (chave, valor) 
-VALUES ('whatsapp_numero', '5579996848609')
+VALUES ('whatsapp_numero', '5579996287730')
 ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor;
 
 -- Insert default admin password (maria2024)

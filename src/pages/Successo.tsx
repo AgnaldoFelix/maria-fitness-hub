@@ -271,7 +271,7 @@ export default function Sucesso() {
             <p className="text-sm text-gray-500 mb-2">Precisa de ajuda?</p>
             <div className="flex items-center justify-center gap-2">
               <a
-                href="https://wa.me/5579996848609"
+                href="https://wa.me/5579996287730"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-colors text-sm"
