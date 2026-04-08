@@ -18,8 +18,10 @@ export function PixModal() {
   const [copied, setCopied] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
-  const pixLink = 'https://nubank.com.br/cobrar/81vxn/69d68313-6cdf-4af4-b5ed-4b1638d743fb';
   const pixCode = '00020126580014BR.GOV.BCB.PIX0136f1e95e04-48ee-43f2-84b3-9b5f4cb4ed015204000053039865802BR5925Dayane Maria Souza de Oli6009SAO PAULO621405101NUuu8jB0L63044642';
+  
+  // Fallback web caso o app não esteja instalado
+  const webFallback = 'https://nubank.com.br/cobrar/81vxn/69d68313-6cdf-4af4-b5ed-4b1638d743fb';
 
   const formatPrice = (price: number | undefined) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -28,30 +30,94 @@ export function PixModal() {
     }).format(price ?? 0);
   };
 
-  const copyAndOpenNubank = async () => {
-    try {
-      await navigator.clipboard.writeText(pixCode);
-    } catch {
-      const textarea = document.createElement('textarea');
-      textarea.value = pixCode;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 3000);
+  // Função para tentar abrir deep link e detectar se funcionou
+  const tryOpenDeepLink = (url: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        resolve(false); // App não está instalado ou não abriu
+      }, 2500);
 
-    // Use location.href to trigger universal link / deep link on mobile
-    // This opens the Nubank app directly if installed
-    setTimeout(() => {
-      window.location.href = pixLink;
-    }, 400);
+      // Tenta abrir o deep link
+      window.location.href = url;
+
+      // Se o app abrir, a página perde foco
+      const onBlur = () => {
+        clearTimeout(timeout);
+        resolve(true);
+        window.removeEventListener('blur', onBlur);
+        window.removeEventListener('focus', onFocus);
+      };
+
+      // Se a página continuar visível, provavelmente falhou
+      const onFocus = () => {
+        clearTimeout(timeout);
+        resolve(false);
+        window.removeEventListener('blur', onBlur);
+        window.removeEventListener('focus', onFocus);
+      };
+
+      window.addEventListener('blur', onBlur, { once: true });
+      window.addEventListener('focus', onFocus, { once: true });
+    });
   };
 
+  // Função principal para abrir o app do Nubank
+  const openNubankApp = async () => {
+    try {
+      // Primeiro copia o código PIX
+      await navigator.clipboard.writeText(pixCode);
+      setCopied(true);
+      
+      // Detecta o dispositivo
+      const userAgent = navigator.userAgent;
+      const isAndroid = /Android/i.test(userAgent);
+      const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+      
+      let deepLink = '';
+      
+      if (isAndroid) {
+        // Intent para Android (abre diretamente o app)
+        deepLink = `intent://pix#Intent;scheme=nubank;package=com.nu.production;S.browser_fallback_url=${encodeURIComponent(webFallback)};end`;
+      } else if (isIOS) {
+        // Deep link para iOS
+        deepLink = `nubank://pix/pay?code=${encodeURIComponent(pixCode)}`;
+      } else {
+        // Desktop: copia e mostra alerta
+        setTimeout(() => {
+          alert('✅ Código PIX copiado! Use o app do Nubank no seu celular para pagar.');
+          setCopied(false);
+        }, 300);
+        return;
+      }
+      
+      // Tenta abrir o deep link
+      const opened = await tryOpenDeepLink(deepLink);
+      
+      if (!opened) {
+        // Se não abrir, usa fallback web
+        setTimeout(() => {
+          window.location.href = webFallback;
+        }, 500);
+      }
+      
+      // Reseta o estado de copiado após 3 segundos
+      setTimeout(() => setCopied(false), 3000);
+      
+    } catch (error) {
+      console.error('Erro ao abrir app:', error);
+      // Fallback: copia e abre o link web
+      setTimeout(() => {
+        window.location.href = webFallback;
+      }, 500);
+    }
+  };
+
+  // Copiar apenas o código PIX (sem abrir app)
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(pixCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       const textarea = document.createElement('textarea');
       textarea.value = pixCode;
@@ -59,9 +125,9 @@ export function PixModal() {
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleConfirmPayment = async () => {
@@ -118,17 +184,17 @@ export function PixModal() {
             </div>
           </div>
 
-          {/* Botão principal — Abrir Nubank */}
+          {/* Botão principal — Abrir Nubank App */}
           <Button
-            onClick={copyAndOpenNubank}
-            className="w-full py-6 text-base font-semibold rounded-xl gap-2 shadow-lg"
+            onClick={openNubankApp}
+            className="w-full py-6 text-base font-semibold rounded-xl gap-2 shadow-lg bg-purple-600 hover:bg-purple-700"
             size="lg"
           >
             <Smartphone className="w-5 h-5" />
-            {copied ? 'Código copiado! Abrindo...' : 'Abrir no Nubank para pagar'}
+            {copied ? 'Código copiado! Abrindo Nubank...' : 'Abrir no App do Nubank'}
           </Button>
           <p className="text-xs text-center text-muted-foreground -mt-2">
-            O código PIX será copiado automaticamente
+            O código PIX será copiado automaticamente e o app será aberto
           </p>
 
           {/* Código PIX manual */}
