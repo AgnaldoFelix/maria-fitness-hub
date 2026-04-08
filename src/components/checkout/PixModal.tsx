@@ -219,6 +219,19 @@ export function PixModal() {
             </div>
           </div>
 
+        {/* Instruções adicionais */}
+          <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-3 border border-blue-200 dark:border-blue-800">
+            <p className="text-xs text-blue-800 dark:text-blue-300 font-medium mb-1">
+              📱 Como pagar:
+            </p>
+            <ol className="text-xs text-blue-700 dark:text-blue-400 space-y-1 list-decimal list-inside">
+              <li>Clique no botão acima para abrir o app do Nubank</li>
+              <li>O código PIX será copiado automaticamente</li>
+              <li>No app, vá em "Pagar" → "PIX Copia e Cola"</li>
+              <li>Cole o código e confirme o pagamento</li>
+            </ol>
+          </div>
+
           {/* Resumo compacto */}
           <div className="bg-muted/30 rounded-xl p-4 space-y-2 text-sm">
             <div className="flex justify-between">
