@@ -19,8 +19,8 @@ export function PixModal() {
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
   // Link do PIX do Nubank
-  const pixLink = 'https://nubank.com.br/cobrar/49qeh/6978f735-eac5-4135-95a4-08618c098801';
-  const pixCode = '00020101021226860014br.gov.bcb.pix2565qrcode-pix.gerencianet.com.br/qr/v2/9d3616f2-8bc8-40b3-bf17-7c7e8e8c8e8c5204000053039865406100.005802BR5925Nubank Tecnologia e Ser6009Sao Paulo62070503***6304E2CA';
+  const pixLink = 'https://nubank.com.br/cobrar/81vxn/69d68313-6cdf-4af4-b5ed-4b1638d743fb';
+  const pixCode = '00020126580014BR.GOV.BCB.PIX0136f1e95e04-48ee-43f2-84b3-9b5f4cb4ed015204000053039865802BR5925Dayane Maria Souza de Oli6009SAO PAULO621405101NUuu8jB0L63044642';
 
   console.log('🎯 PixModal renderizado, isOpen:', isPixModalOpen);
 
