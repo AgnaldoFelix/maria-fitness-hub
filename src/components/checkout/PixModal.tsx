@@ -86,9 +86,9 @@ const formatPrice = (price: number | undefined) => {
             
             {/* QR Code Image */}
             <img 
-              src={'/QrCode.jpeg'}
+              src={'/QRDayane.jpg'}
               alt="QR Code PIX"
-              className="w-64 h-64 mb-6 rounded-lg border"
+              className="w-44 h-44 mb-6 rounded-lg border"
               onError={(e) => {
                 // Fallback se a imagem não carregar
                 e.currentTarget.style.display = 'none';
