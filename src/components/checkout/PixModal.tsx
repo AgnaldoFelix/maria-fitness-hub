@@ -31,27 +31,22 @@ export function PixModal() {
   const copyAndOpenNubank = async () => {
     try {
       await navigator.clipboard.writeText(pixCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
-      
-      // Small delay so user sees the "copied" feedback before redirect
-      setTimeout(() => {
-        window.open(pixLink, '_blank');
-      }, 400);
     } catch {
-      // Fallback for older browsers
       const textarea = document.createElement('textarea');
       textarea.value = pixCode;
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
-      setTimeout(() => {
-        window.open(pixLink, '_blank');
-      }, 400);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+
+    // Use location.href to trigger universal link / deep link on mobile
+    // This opens the Nubank app directly if installed
+    setTimeout(() => {
+      window.location.href = pixLink;
+    }, 400);
   };
 
   const copyToClipboard = async () => {
